@@ -16,7 +16,7 @@ public class OrderFood {
     int count;
 
 
-    public OrderFood(String _id, int count) {
+    public void OrderFood(String _id, int count) {
         this._id = _id;
         this.count = count;
     }

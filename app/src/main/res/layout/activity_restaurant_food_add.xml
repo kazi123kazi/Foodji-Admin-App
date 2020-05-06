@@ -42,7 +42,7 @@
         android:layout_marginTop="@dimen/_23sdp"
         android:background="@android:color/white"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/restaurant_menu"
+
         />
 
 

@@ -38,7 +38,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements RestaurantAdapter.RestaurantAdapterListener {
+public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
@@ -66,26 +66,26 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
 //        progressBar = findViewById(R.id.progressBar2);
 
         //      progressBar.setVisibility(View.GONE);
+//
+//        Intent i = getIntent();
+//
+//        String token = i.getStringExtra("token");
+//        user = i.getStringExtra("name");
 
-        Intent i = getIntent();
-
-        String token = i.getStringExtra("token");
-        user = i.getStringExtra("name");
-
-        if (user == null) {
-            SharedPreferences sharedPreferences = getSharedPreferences("org.example.foodie", Context.MODE_PRIVATE);
-
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-
-            user = sharedPreferences.getString("name", null);
-        }
-
-
-        if (token != null) {
-            Log.i("TOKEN", token);
-            if (WelcomeActvity.getInstance() != null)
-                WelcomeActvity.getInstance().finish();
-        }
+//        if (user == null) {
+//            SharedPreferences sharedPreferences = getSharedPreferences("org.example.foodie", Context.MODE_PRIVATE);
+//
+//            SharedPreferences.Editor editor = sharedPreferences.edit();
+//
+//            user = sharedPreferences.getString("name", null);
+//        }
+//
+//
+//        if (token != null) {
+//            Log.i("TOKEN", token);
+//            if (WelcomeActvity.getInstance() != null)
+//                WelcomeActvity.getInstance().finish();
+//        }
 
 
         // Set a Toolbar to replace the ActionBar.
@@ -102,8 +102,8 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
 
 
         View headerView = nvDrawer.getHeaderView(0);
-        TextView userName = headerView.findViewById(R.id.userName);
-        userName.setText("USER: " + String.valueOf(user));
+      //  TextView userName = headerView.findViewById(R.id.userName);
+   //     userName.setText("USER: " + String.valueOf(user));
 
 
         // Setup drawer view
@@ -142,22 +142,12 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
     public boolean onOptionsItemSelected(MenuItem item) {
         // The action bar home/up action should open or close the drawer.
 
-        if (item.getItemId() == R.id.action_search) {
-            return true;
-        }
 
         switch (item.getItemId()) {
             case android.R.id.home:
                 mDrawer.openDrawer(GravityCompat.START);
                 return true;
-            case R.id.action_cart:
-                Intent intent = new Intent(MainActivity.this, CartActivity.class);
-                //getSupportFragmentManager().popBackStackImmediate("frag_back",0);
-                this.startActivity(intent);
-
         }
-
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -190,14 +180,10 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
                 id = true;
                 fragmentClass = Home.class;
                 break;
-            case R.id.cart:
-                Intent intent = new Intent(MainActivity.this, CartActivity.class);
-                //getSupportFragmentManager().popBackStackImmediate("frag_back",0);
-                this.startActivity(intent);
-                return;
-            case R.id.logout:
-                LogoutUser();
-                return;
+
+//            case R.id.logout:
+//                LogoutUser();
+//                return;
 
 
 
@@ -218,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
         transaction.commit();
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -226,34 +211,30 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
         inflater.inflate(R.menu.main_activity_bar, menu);
 
 
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) menu.findItem(R.id.action_search)
-                .getActionView();
-        searchView.setSearchableInfo(searchManager
-                .getSearchableInfo(getComponentName()));
-        searchView.setMaxWidth(Integer.MAX_VALUE);
-        searchView.setSubmitButtonEnabled(false);
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                // filter recycler view when query submitted
-
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String query) {
-                // filter recycler view when text is changed
-                Home.adapter.getFilter().filter(query);
-                return false;
-            }
-        });
+//        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//        searchView = (SearchView) menu.findItem(R.id.action_search)
+//                .getActionView();
+//        searchView.setSearchableInfo(searchManager
+//                .getSearchableInfo(getComponentName()));
+//        searchView.setMaxWidth(Integer.MAX_VALUE);
+//        searchView.setSubmitButtonEnabled(false);
+//
+//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                // filter recycler view when query submitted
+//
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String query) {
+//                // filter recycler view when text is changed
+//                Home.adapter.getFilter().filter(query);
+//                return false;
+//            }
+//        });
         return true;
-
-
-
-
 
 
     }
@@ -264,14 +245,14 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
             if (item != exception) item.setVisible(visible);
         }
     }
-    @Override
+//    @Override
     public void onBackPressed() {
 
-
-        if (!searchView.isIconified()) {
-            searchView.setIconified(true);
-            return;
-        }
+//
+//        if (!searchView.isIconified()) {
+//            searchView.setIconified(true);
+//            return;
+//        }
         super.onBackPressed();
     }
 
@@ -337,12 +318,12 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
     }
 
 
-    @Override
-    public void OnRestaurantSelected(Restaurant restaurant) {
-        Toast.makeText(getApplicationContext(), "Selected " + restaurant.getName(), Toast.LENGTH_SHORT);
-
-    }
-
+//    @Override
+//    public void OnRestaurantSelected(Restaurant restaurant) {
+//        Toast.makeText(getApplicationContext(), "Selected " + restaurant.getName(), Toast.LENGTH_SHORT);
+//
+//    }
+//
 
 
 }

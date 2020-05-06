@@ -194,14 +194,14 @@ public class CartActivity extends AppCompatActivity {
 
 
     public void CreateOrder() {
-        for (int i = 0; i < cartItems.size(); i++) {
-
-            orderFood.add(new OrderFood(cartItems.get(i).getFoodid().get_id(), cartItems.get(i).getCount()));
-        }
-
-        payment = new Payment("COD", "UNPAID");
-
-        order = new Order(FoodsActivity.rest_id, orderFood, payment);
+//        for (int i = 0; i < cartItems.size(); i++) {
+//
+//            orderFood.add(new OrderFood(cartItems.get(i).getFoodid().get_id(), cartItems.get(i).getCount()));
+//        }
+//
+//        payment = new Payment("COD", "UNPAID");
+//
+//        order = new Order(FoodsActivity.rest_id, orderFood, payment);
 
 
     }
