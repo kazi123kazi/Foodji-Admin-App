@@ -1,0 +1,3743 @@
+diff --git a/.idea/gradle.xml b/.idea/gradle.xml
+index 674414f..32db03e 100644
+--- a/.idea/gradle.xml
++++ b/.idea/gradle.xml
+@@ -4,6 +4,9 @@
+   <component name="GradleSettings">
+     <option name="linkedExternalProjectsSettings">
+       <GradleProjectSettings>
++        <compositeConfiguration>
++          <compositeBuild compositeDefinitionSource="SCRIPT" />
++        </compositeConfiguration>
+         <option name="delegatedBuild" value="false" />
+         <option name="testRunner" value="PLATFORM" />
+         <option name="distributionType" value="DEFAULT_WRAPPED" />
+@@ -15,6 +18,7 @@
+           </set>
+         </option>
+         <option name="resolveModulePerSourceSet" value="false" />
++        <option name="testRunner" value="PLATFORM" />
+       </GradleProjectSettings>
+     </option>
+   </component>
+diff --git a/.idea/render.experimental.xml b/.idea/render.experimental.xml
+new file mode 100644
+index 0000000..8ec256a
+--- /dev/null
++++ b/.idea/render.experimental.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RenderSettings">
++    <option name="showDecorations" value="true" />
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/app/build.gradle b/app/build.gradle
+index fcfc6f9..fb49623 100644
+--- a/app/build.gradle
++++ b/app/build.gradle
+@@ -35,6 +35,8 @@ dependencies {
+     implementation 'com.google.android.gms:play-services-location:15.0.0'
+     //implementation 'com.google.android.gms:play-services:15.0.0'
+     implementation 'com.google.android.gms:play-services-ads:15.0.0'
++    implementation 'com.google.android.material:material:1.0.0'
++
+     //noinspection GradleCompatible
+     implementation 'com.android.support:recyclerview-v7:28.0.0'
+     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index 37f884b..342b08d 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -13,10 +13,13 @@
+         android:roundIcon="@drawable/applogo"
+         android:supportsRtl="true"
+         android:theme="@style/AppTheme">
++        <activity android:name=".OrdersActivity"></activity>
++        <activity
++            android:name=".RestaurantFoodAdd"
++            android:theme="@style/AppTheme.NoActionBar" />
++        <!--
++<<<<<<< HEAD
+ 
+-        <activity android:name=".RestaurantFoodAdd"
+-            android:theme="@style/AppTheme.NoActionBar">
+-        </activity>
+         <activity
+             android:name=".RegisterActivity"
+             android:theme="@style/AppTheme.NoActionBar" />
+@@ -32,11 +35,40 @@
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
+         </activity>
++        <activity
++=======
++        -->
++        <activity
++            android:name=".FoodsActivity"
++            android:theme="@style/AppTheme.NoActionBar" />
++        <activity
++            android:name=".RegisterActivity"
++            android:theme="@style/AppTheme.NoActionBar" />
++        <activity
++            android:name=".LoginActivity"
++            android:theme="@style/AppTheme.NoActionBar" />
++        <activity android:name=".CartActivity" />
++        <activity
++            android:name=".WelcomeActvity"
++            android:theme="@style/AppTheme.NoActionBar">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++
++                <category android:name="android.intent.category.LAUNCHER" />
++            </intent-filter>
+ 
++
++        </activity>
+         <activity
+             android:name=".MainActivity"
+-            android:screenOrientation="fullSensor"
+-            android:theme="@style/AppTheme.NoActionBar"></activity>
++            android:theme="@style/AppTheme.NoActionBar">
++            <meta-data
++                android:name="android.app.searchable"
++                android:resource="@xml/searchable" />
++            <intent-filter>
++                <action android:name="android.intent.action.SEARCH" />
++            </intent-filter>
++        </activity>
+     </application>
+ 
+ </manifest>
+\ No newline at end of file
+diff --git a/app/src/main/java/org/example/foodie/CartActivity.java b/app/src/main/java/org/example/foodie/CartActivity.java
+new file mode 100644
+index 0000000..8bc26b7
+--- /dev/null
++++ b/app/src/main/java/org/example/foodie/CartActivity.java
+@@ -0,0 +1,228 @@
++package org.example.foodie;
++
++import androidx.annotation.NonNull;
++import androidx.appcompat.app.ActionBar;
++import androidx.appcompat.app.AppCompatActivity;
++import androidx.cardview.widget.CardView;
++import androidx.recyclerview.widget.GridLayoutManager;
++import androidx.recyclerview.widget.RecyclerView;
++
++import android.content.Context;
++import android.content.Intent;
++import android.content.SharedPreferences;
++import android.os.Bundle;
++import android.util.Log;
++import android.view.ActionProvider;
++import android.view.MenuItem;
++import android.view.View;
++import android.widget.Button;
++import android.widget.ListView;
++import android.widget.RelativeLayout;
++import android.widget.TextView;
++import android.widget.Toast;
++import android.widget.Toolbar;
++
++import com.google.gson.Gson;
++import com.google.gson.reflect.TypeToken;
++
++import org.example.foodie.models.Food;
++import org.example.foodie.models.Order;
++import org.example.foodie.models.OrderFood;
++import org.example.foodie.models.Payment;
++import org.example.foodie.models.ResponseUser;
++import org.example.foodie.org.example.foodie.apifetch.FoodieClient;
++import org.example.foodie.org.example.foodie.apifetch.ServiceGenerator;
++
++import java.lang.reflect.Type;
++import java.util.ArrayList;
++import java.util.HashSet;
++import java.util.List;
++import java.util.Set;
++
++import retrofit2.Call;
++import retrofit2.Callback;
++import retrofit2.Response;
++
++public class CartActivity extends AppCompatActivity {
++
++    public static Gson gson = new Gson();
++    public static String json;
++    public static int total = 0;
++    public static TextView totalPrice;
++    public static RelativeLayout cartView;
++    public static TextView emptyCart;
++    public static Button button;
++    public static RecyclerView cartList;
++    public static CartAdapter adapter;
++    static List<Food> cartItems = new ArrayList<>();
++    public SharedPreferences sharedPreferences;
++    Set<String> foods;
++    public List<OrderFood> orderFood = new ArrayList<>();
++    public Payment payment;
++    public Order order;
++
++    public static void getPrefernce(SharedPreferences sharedPreferences) {
++
++
++        if (cartItems.isEmpty()) {
++
++            json = sharedPreferences.getString("cartitems", null);
++            String id = sharedPreferences.getString("rest_id", null);
++            if (json != null) {
++                Type type = new TypeToken<List<Food>>() {
++                }.getType();
++                cartItems = gson.fromJson(json, type);
++            }
++            if (id != null) FoodsActivity.rest_id = id;
++
++
++        }
++/*
++        else{
++            SharedPreferences.Editor editor= sharedPreferences.edit();
++            json=gson.toJson(cartItems);
++            editor.putString("cartitems",json);
++            editor.commit();
++
++        }*/
++
++    }
++
++    public static void saveData(SharedPreferences sharedPreferences) {
++
++        SharedPreferences.Editor editor = sharedPreferences.edit();
++        json = gson.toJson(cartItems);
++        editor.putString("cartitems", json);
++        editor.putString("rest_id", FoodsActivity.rest_id);
++        editor.commit();
++    }
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        setContentView(R.layout.activity_cart);
++
++        button = findViewById(R.id.placeOrder);
++        emptyCart = findViewById(R.id.emptyCart);
++        cartView = findViewById(R.id.cartView);
++        total = 0;
++        totalPrice = findViewById(R.id.total);
++        cartList = findViewById(R.id.cartList);
++        sharedPreferences = getSharedPreferences("org.example.foodie", MODE_PRIVATE);
++
++
++        cartView.setVisibility(View.GONE);
++        emptyCart.setVisibility(View.VISIBLE);
++
++        getPrefernce(sharedPreferences);
++        for (int i = 0; i < CartActivity.cartItems.size(); i++) {
++            CartActivity.total = CartActivity.total + Integer.parseInt(CartActivity.cartItems.get(i).getPrice()) * CartActivity.cartItems.get(i).getCount();
++
++        }
++
++        CartActivity.totalPrice.setText(String.valueOf(CartActivity.total));
++
++
++        if (!cartItems.isEmpty()) {
++
++            try {
++                cartView.setVisibility(View.VISIBLE);
++                emptyCart.setVisibility(View.GONE);
++                adapter = new CartAdapter(this);
++
++                cartList.setLayoutManager(new GridLayoutManager(this, 1));
++                Log.i("Current food: ", cartItems.get(cartItems.size() - 1).getFoodid().getName());
++                adapter.setFood(cartItems);
++                cartList.setAdapter(adapter);
++            } catch (Exception e) {
++
++                // Toolbar toolbar=findViewById(R.id.homeAsUp);
++                ActionBar actionBar = getSupportActionBar();
++                actionBar.setDisplayHomeAsUpEnabled(true);
++
++
++            }
++            //   setupRecyclerView();
++
++            button.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View view) {
++                    //   Toast.makeText(CartActivity.this, "Coming Soon!", Toast.LENGTH_SHORT).show();
++                    CreateOrder();
++
++                    placeOrder(order);
++                }
++            });
++
++        }
++        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
++    }
++
++    public void placeOrder(Order order) {
++
++
++        FoodieClient foodieClient = ServiceGenerator.createService(FoodieClient.class);
++        Call<Order> call = foodieClient.placeOrder(WelcomeActvity.token, order);
++        Log.i("cartitems size: ", order.getRestaurantId() + " " + order.getFoodList().get(0).get_id());
++        ;
++        //    progressBar.setVisibility(View.VISIBLE);
++        call.enqueue(new Callback<Order>() {
++            @Override
++            public void onResponse(Call<Order> call, Response<Order> response) {
++
++                Log.i("Ordered: ", String.valueOf(response.message()));
++                if (response.code() == 200) {
++                    Toast.makeText(getApplicationContext(), "Order placed", Toast.LENGTH_SHORT).show();
++                    Intent i = new Intent(CartActivity.this, MainActivity.class);
++                    cartItems.clear();
++                    FoodsActivity.rest_id = null;
++                    saveData(sharedPreferences);
++                    CartActivity.this.finish();
++                    CartActivity.super.onBackPressed();
++                }
++            }
++
++            @Override
++            public void onFailure(Call<Order> call, Throwable t) {
++                Log.i("Orderederr: ", t.toString());
++            }
++        });
++
++
++
++    }
++
++
++    public void CreateOrder() {
++        for (int i = 0; i < cartItems.size(); i++) {
++
++            orderFood.add(new OrderFood(cartItems.get(i).getFoodid().get_id(), cartItems.get(i).getCount()));
++        }
++
++        payment = new Payment("COD", "UNPAID");
++
++        order = new Order(FoodsActivity.rest_id, orderFood, payment);
++
++
++    }
++
++    @Override
++    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
++
++
++        switch (item.getItemId()) {
++            case android.R.id.home:
++                super.onBackPressed();
++                break;
++        }
++
++        return super.onOptionsItemSelected(item);
++    }
++
++    @Override
++    public void onBackPressed() {
++        super.onBackPressed();
++
++        finish();
++    }
++}
+diff --git a/app/src/main/java/org/example/foodie/CartAdapter.java b/app/src/main/java/org/example/foodie/CartAdapter.java
+new file mode 100644
+index 0000000..4e530f7
+--- /dev/null
++++ b/app/src/main/java/org/example/foodie/CartAdapter.java
+@@ -0,0 +1,171 @@
++package org.example.foodie;
++
++import android.content.Context;
++import android.content.SharedPreferences;
++import android.os.Bundle;
++import android.util.Log;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.ImageView;
++import android.widget.TextView;
++import android.widget.Toast;
++
++import androidx.annotation.NonNull;
++import androidx.appcompat.app.AppCompatActivity;
++import androidx.fragment.app.FragmentManager;
++import androidx.recyclerview.widget.RecyclerView;
++
++import org.example.foodie.models.Food;
++import org.example.foodie.models.Foodid;
++
++import java.util.ArrayList;
++import java.util.List;
++
++public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CustomViewHolder> {
++
++    public static int pos;
++
++    List<Food> items;
++    private OnItemCLickListener mOnItemCLickListener;
++    private FragmentManager f_manager;
++    private Context context;
++
++    public CartAdapter(Context context) {
++        this.context = context;
++
++        // this.items = items;
++    }
++
++
++    @NonNull
++    @Override
++    public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
++        return new CartAdapter.CustomViewHolder(LayoutInflater.from(context).inflate(R.layout.cart_list, parent, false));
++
++    }
++
++    @Override
++    public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
++        SharedPreferences sharedPreferences = context.getSharedPreferences("org.example.foodie", Context.MODE_PRIVATE);
++        int count = items.get(position).getCount();
++        holder.itemName.setText(items.get(position).getFoodid().getName());
++        holder.itemQuantity.setText(String.valueOf(count));
++        holder.itemPrice.setText(String.valueOf(Integer.parseInt(items.get(position).getPrice()) * count));
++
++        holder.adddFood.setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View view) {
++
++                Food currItem = items.get(position);
++                if (isPresent(CartActivity.cartItems, currItem.getFoodid().getName())) {
++
++                    CartActivity.cartItems.get(pos).addCount();
++                    //items.get(position).addCount();
++                }
++
++                updateTotal();
++
++                CartActivity.saveData(sharedPreferences);
++                holder.itemQuantity.setText(String.valueOf(items.get(position).getCount()));
++                holder.itemPrice.setText(String.valueOf(Integer.parseInt(items.get(position).getPrice()) * items.get(position).getCount()));
++
++            }
++
++        });
++
++        holder.removeFood.setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View view) {
++                Food currItem = items.get(position);
++                if (isPresent(CartActivity.cartItems, currItem.getFoodid().getName())) {
++
++                    CartActivity.cartItems.get(pos).decreaseCount();
++                    //items.get(position).addCount();
++                    if (CartActivity.cartItems.get(pos).getCount() <= 0) {
++                        CartActivity.cartItems.remove(CartActivity.cartItems.get(pos));
++                        CartActivity.saveData(sharedPreferences);
++                        updateTotal();
++                        if (CartActivity.cartItems.isEmpty()) {
++                            CartActivity.cartView.setVisibility(View.GONE);
++                            CartActivity.emptyCart.setVisibility(View.VISIBLE);
++
++                        }
++
++
++                        notifyDataSetChanged();
++                        Log.i("working fine: ", "yes");
++                        return;
++                    }
++                }
++
++                updateTotal();
++
++                CartActivity.saveData(sharedPreferences);
++                holder.itemQuantity.setText(String.valueOf(items.get(position).getCount()));
++                holder.itemPrice.setText(String.valueOf(Integer.parseInt(items.get(position).getPrice()) * items.get(position).getCount()));
++
++
++            }
++        });
++
++
++    }
++
++    @Override
++    public int getItemCount() {
++        return items.size();
++    }
++
++    public void setFood(List<Food> foods) {
++        this.items = foods;
++        notifyDataSetChanged();
++    }
++
++    public Boolean isPresent(List<Food> foods, String name) {
++
++        for (int i = 0; i < foods.size(); i++) {
++            if (name.equals(foods.get(i).getFoodid().getName())) {
++                pos = i;
++                return true;
++            }
++        }
++        return false;
++    }
++
++    public void updateTotal() {
++        int total = 0;
++        for (int i = 0; i < CartActivity.cartItems.size(); i++) {
++            total = total + Integer.parseInt(CartActivity.cartItems.get(i).getPrice()) * CartActivity.cartItems.get(i).getCount();
++        }
++
++        CartActivity.totalPrice.setText(String.valueOf(total));
++    }
++
++
++    public interface OnItemCLickListener {
++        void OnItemClick(int position);
++    }
++
++    public class CustomViewHolder extends RecyclerView.ViewHolder {
++
++        private TextView itemName;
++        private TextView itemPrice;
++        private TextView itemQuantity;
++        private ImageView adddFood;
++        private ImageView removeFood;
++
++
++        public CustomViewHolder(@NonNull View itemView) {
++            super(itemView);
++            itemName = itemView.findViewById(R.id.itemName);
++            itemPrice = itemView.findViewById(R.id.itemPrice);
++            itemQuantity = itemView.findViewById(R.id.itemQuantity);
++            adddFood = itemView.findViewById(R.id.addItem);
++            removeFood = itemView.findViewById(R.id.removeItem);
++
++        }
++    }
++
++
++}
+diff --git a/app/src/main/java/org/example/foodie/FoodAdapter.java b/app/src/main/java/org/example/foodie/FoodAdapter.java
+index 5e75d85..1201bef 100644
+--- a/app/src/main/java/org/example/foodie/FoodAdapter.java
++++ b/app/src/main/java/org/example/foodie/FoodAdapter.java
+@@ -1,30 +1,44 @@
+ package org.example.foodie;
+ 
+ import android.content.Context;
++import android.content.SharedPreferences;
++import android.os.Bundle;
+ import android.util.Log;
+ import android.view.LayoutInflater;
+ import android.view.View;
+ import android.view.ViewGroup;
++import android.widget.Button;
+ import android.widget.ImageView;
++import android.widget.LinearLayout;
++import android.widget.RelativeLayout;
+ import android.widget.TextView;
++import android.widget.Toast;
+ 
+ import androidx.annotation.NonNull;
+-import androidx.fragment.app.FragmentActivity;
++import androidx.appcompat.app.AppCompatActivity;
+ import androidx.fragment.app.FragmentManager;
+ import androidx.recyclerview.widget.RecyclerView;
+ 
+ import org.example.foodie.models.Food;
+ import org.example.foodie.models.Foodid;
+ 
++import java.util.ArrayList;
++import java.util.Iterator;
+ import java.util.List;
++import java.util.concurrent.Delayed;
+ 
+ public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.CustomViewHolder> {
+ 
++    private static int pos;
+ 
+     List<Food> items;
+     private OnItemCLickListener mOnItemCLickListener;
+     private FragmentManager f_manager;
+     private Context context;
++    public SharedPreferences sharedPreferences;
++
++
++
+ 
+     public FoodAdapter(Context context) {
+         this.context = context;
+@@ -51,6 +65,75 @@ public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.CustomViewHold
+         holder.foodName.setText(foodid.getName());
+ 
+ 
++        sharedPreferences = context.getSharedPreferences("org.example.foodie", Context.MODE_PRIVATE);
++
++        CartActivity.getPrefernce(sharedPreferences);
++        Food currItem = items.get(position);
++
++
++        if (!CartActivity.cartItems.isEmpty() && isPresent(CartActivity.cartItems, currItem.getFoodid().getName())) {
++            holder.itemButton.setVisibility(View.VISIBLE);
++            holder.addToCart.setVisibility(View.GONE);
++
++            holder.itemQuantity.setText(String.valueOf(CartActivity.cartItems.get(pos).getCount()));
++        }
++        holder.addfood.setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View view) {
++                Toast.makeText(context, "Item added to cart", Toast.LENGTH_SHORT).show();
++                CartActivity.cartItems.get(pos).addCount();
++                //CartActivity.cartItems.add(items.get(position));
++                CartActivity.saveData(sharedPreferences);
++                holder.itemQuantity.setText(String.valueOf(CartActivity.cartItems.get(pos).getCount()));
++
++            }
++        });
++
++        holder.removeFood.setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View view) {
++
++
++                Toast.makeText(context, "Item added to cart", Toast.LENGTH_SHORT).show();
++
++                CartActivity.cartItems.get(pos).decreaseCount();
++
++
++                if (CartActivity.cartItems.get(pos).getCount() == 0) {
++                    CartActivity.cartItems.remove(CartActivity.cartItems.get(pos));
++                    holder.addToCart.setVisibility(View.VISIBLE);
++                    holder.itemButton.setVisibility(View.GONE);
++                } else {
++                    holder.itemQuantity.setText(String.valueOf(CartActivity.cartItems.get(pos).getCount()));
++
++                }
++                CartActivity.saveData(sharedPreferences);
++
++            }
++        });
++
++
++        holder.addToCart.setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View view) {
++
++
++                    Toast.makeText(context, "Item added to cart", Toast.LENGTH_SHORT).show();
++
++                    items.get(position).addCount();
++                    CartActivity.cartItems.add(items.get(position));
++                    CartActivity.saveData(sharedPreferences);
++                holder.itemButton.setVisibility(View.VISIBLE);
++                holder.addToCart.setVisibility(View.GONE);
++                holder.itemQuantity.setText("1");
++
++
++                }
++        });
++
++
++
++
+     }
+ 
+     @Override
+@@ -67,16 +150,38 @@ public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.CustomViewHold
+         void OnItemClick(int position);
+     }
+ 
++    public Boolean isPresent(List<Food> foods, String name) {
++
++        for (int i = 0; i < foods.size(); i++) {
++            if (name.equals(foods.get(i).getFoodid().getName())) {
++                pos = i;
++                return true;
++            }
++        }
++        return false;
++    }
++
+     public class CustomViewHolder extends RecyclerView.ViewHolder {
+ 
+-        private ImageView imageView;
++        private LinearLayout addToCart;
+         private TextView foodName;
++        private ImageView addfood;
++        private ImageView removeFood;
++        private LinearLayout itemButton;
++        private TextView itemQuantity;
++
+ 
+         public CustomViewHolder(@NonNull View itemView) {
+             super(itemView);
+-
+             foodName = itemView.findViewById(R.id.food_name);
+-
++            addfood = itemView.findViewById(R.id.addFood);
++            addToCart = itemView.findViewById(R.id.addToCart);
++            addfood = itemView.findViewById(R.id.addItem);
++            removeFood = itemView.findViewById(R.id.removeItem);
++            itemButton = itemView.findViewById(R.id.itemButton);
++            itemQuantity = itemView.findViewById(R.id.itemQuantity);
+         }
+     }
++
++
+ }
+diff --git a/app/src/main/java/org/example/foodie/FoodsActivity.java b/app/src/main/java/org/example/foodie/FoodsActivity.java
+index ccfb76f..7ddb7c0 100644
+--- a/app/src/main/java/org/example/foodie/FoodsActivity.java
++++ b/app/src/main/java/org/example/foodie/FoodsActivity.java
+@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
+ import androidx.appcompat.app.ActionBar;
+ import androidx.appcompat.app.AppCompatActivity;
++import androidx.appcompat.widget.Toolbar;
+ import androidx.fragment.app.Fragment;
+ import androidx.lifecycle.Observer;
+ import androidx.lifecycle.ViewModelProviders;
+@@ -30,9 +31,12 @@ public class FoodsActivity extends AppCompatActivity {
+ 
+ 
+     //public static List<Food> foods=new ArrayList<>();
++
++    static String rest_id = null;
+     public static String id = null;
+     private static FoodAdapter adapter;
+     private static RecyclerView recyclerView;
++    private Toolbar toolbar;
+     View rootView;
+     FoodsViewModel foodsViewModel;
+     private FoodsViewModel mViewModel;
+@@ -67,14 +71,22 @@ public class FoodsActivity extends AppCompatActivity {
+ 
+                 }
+ 
++
+ //                Log.i("foodiee", String.valueOf(restaurant.getFoods()));
+                 adapter.notifyDataSetChanged();
+ 
+             }
+         });
+         //Log.i("foods", String.valueOf("hi"));
+-        ActionBar actionBar = getSupportActionBar();
+-        actionBar.setDisplayHomeAsUpEnabled(true);
++
++        toolbar = (Toolbar) findViewById(R.id.toolbar);
++        setSupportActionBar(toolbar);
++
++        // This will display an Up icon (<-), we will replace it with hamburger later
++        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
++        toolbar.setTitle(getIntent().getStringExtra("restaurant name"));
++
++
+ 
+ 
+         setupRecyclerView();
+diff --git a/app/src/main/java/org/example/foodie/Home.java b/app/src/main/java/org/example/foodie/Home.java
+index 0187c0f..52556ab 100644
+--- a/app/src/main/java/org/example/foodie/Home.java
++++ b/app/src/main/java/org/example/foodie/Home.java
+@@ -32,7 +32,7 @@ public class Home extends Fragment {
+     List<org.example.foodie.models.Restaurant> restaurantList = new ArrayList<>();
+ 
+     RestaurantsViewModel restaurantsViewModel;
+-    public RestaurantAdapter adapter;
++    public static RestaurantAdapter adapter;
+     View rootView;
+     List<Restaurant> restaurant = new ArrayList<>();
+     ProgressBar loader;
+@@ -61,7 +61,7 @@ public class Home extends Fragment {
+ 
+                 if (restaurants != null) {
+                     adapter = new RestaurantAdapter(getActivity());
+-                    adapter.setRestaurants(restaurants);
++                    adapter.setRestaurant(restaurants);
+                     subrecview.setAdapter(adapter);
+                 }
+                 loader.setVisibility(View.GONE);
+@@ -69,7 +69,7 @@ public class Home extends Fragment {
+             }
+         });
+ 
+-
++        subrecview.setLayoutManager(new GridLayoutManager(getActivity(), 1));
+         //SETTING up recyclerview
+         setupRecyclerView();
+ 
+@@ -114,5 +114,3 @@ public class Home extends Fragment {
+ 
+ 
+ }
+-
+-
+diff --git a/app/src/main/java/org/example/foodie/LoginActivity.java b/app/src/main/java/org/example/foodie/LoginActivity.java
+index 8983aef..c98e6d3 100644
+--- a/app/src/main/java/org/example/foodie/LoginActivity.java
++++ b/app/src/main/java/org/example/foodie/LoginActivity.java
+@@ -4,20 +4,17 @@ import android.content.Context;
+ import android.content.Intent;
+ import android.content.SharedPreferences;
+ import android.os.Bundle;
++import android.renderscript.ScriptGroup;
+ import android.util.Log;
+ import android.view.View;
+ import android.widget.Button;
+ import android.widget.EditText;
+ import android.widget.ProgressBar;
+-import android.widget.TextView;
+ import android.widget.Toast;
+ 
+ import androidx.appcompat.app.AppCompatActivity;
+ 
+-import org.example.foodie.models.RestaurantLogIn.ResponseRestaurant;
+-import org.example.foodie.models.RestaurantLogIn.ResponseRestaurantUser;
+ import org.example.foodie.models.ResponseUser;
+-import org.example.foodie.models.RestaurantLogIn.RestaurantUser;
+ import org.example.foodie.models.User;
+ import org.example.foodie.org.example.foodie.apifetch.FoodieClient;
+ import org.example.foodie.org.example.foodie.apifetch.ServiceGenerator;
+@@ -29,9 +26,8 @@ import retrofit2.Response;
+ public class LoginActivity extends AppCompatActivity {
+     public static User user = new User("", "");
+     private Button LoginButton;
+-    private EditText InputPhone, InputPassword,InputRestaurantId;
++    private EditText InputPhone, InputPassword;
+     private ProgressBar spinner;
+-    private TextView adminPanelLogin,notAdminPaneLogin;
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+@@ -39,42 +35,16 @@ public class LoginActivity extends AppCompatActivity {
+ 
+         spinner = (ProgressBar) findViewById(R.id.progressBar1);
+         spinner.setVisibility(View.GONE);
+-        initWidgets();
+-        adminPanelLogin.setOnClickListener(new View.OnClickListener() {
+-            @Override
+-            public void onClick(View v) {
+-                //  contactNos.add(InputPhoneNumber.getText().toString()); //adding no to list as in api
+-                adminPanelLogin.setVisibility(View.INVISIBLE);
+-                notAdminPaneLogin.setVisibility(View.VISIBLE);
+-                InputPhone.setVisibility(View.INVISIBLE);
+-                InputRestaurantId.setVisibility(View.VISIBLE);
+ 
+-            }
+-        });
+-        notAdminPaneLogin.setOnClickListener(new View.OnClickListener() {
+-            @Override
+-            public void onClick(View v) {
+-                //  contactNos.add(InputPhoneNumber.getText().toString()); //adding no to list as in api
+-
+-                notAdminPaneLogin.setVisibility(View.INVISIBLE);
+-                adminPanelLogin.setVisibility(View.VISIBLE);
+-                InputRestaurantId.setVisibility(View.INVISIBLE);
+-                InputPhone.setVisibility(View.VISIBLE);
+-
+-            }
+-        });
++        initWidgets();
+ 
+         LoginButton.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
+-                if (adminPanelLogin.getVisibility()==View.VISIBLE) { //he is an ordinary user
++                CreateUser(String.valueOf(InputPhone.getText()), String.valueOf(InputPassword.getText()));
+ 
+-                    CreateUser(String.valueOf(InputPhone.getText()) , String.valueOf(InputPassword.getText()));
+-                    //  Log.i("Credentials", user.getEmail() + " " + user.getPassword());
+-                    LoginUser(user);
+-                } else { //log in a resturant user
+-                    restaurantLogin();
+-                }
++              //  Log.i("Credentials", user.getEmail() + " " + user.getPassword());
++                LoginUser(user);
+             }
+         });
+         if (user.getToken() != null) {
+@@ -84,52 +54,16 @@ public class LoginActivity extends AppCompatActivity {
+ 
+     }
+ 
+-    private void restaurantLogin() {
+-        FoodieClient foodieClient = ServiceGenerator.createService(FoodieClient.class);
+-        RestaurantUser restaurantUser=new RestaurantUser(InputRestaurantId.getText().toString(),InputPassword.getText().toString());
+-        Call<ResponseRestaurantUser> responseRestaurantUserCall= foodieClient.logInRestaurant(restaurantUser);
+-        spinner.setVisibility(View.VISIBLE);
+-         responseRestaurantUserCall.enqueue(new Callback<ResponseRestaurantUser>() {
+-             @Override
+-             public void onResponse(Call<ResponseRestaurantUser> call , Response<ResponseRestaurantUser> response) {
+-                 if (response.code()==200) {
+-                     Toast.makeText(getApplicationContext() , "Success!" , Toast.LENGTH_SHORT).show();
+-                     Intent intent = new Intent(getBaseContext(),RestaurantFoodAdd.class);
+-                     //added all restaurant to obj
+-                     assert response.body() != null;
+-                     ResponseRestaurant restaurantObj=response.body().getRestaurant();
+-
+-                     intent.putExtra("token", response.body().getToken());
+-                     intent.putExtra("name",restaurantObj.getName());
+-                     intent.putExtra("restId",restaurantObj.getRest_id());
+-                     intent.putExtra("address",restaurantObj.getAddress());
+-                     startActivity(intent);
+-
+-
+-                     spinner.setVisibility(View.GONE);
+-                     WelcomeActvity.getInstance().finish();
+-                     finish();
+-                 }
+-             }
+-
+-             @Override
+-             public void onFailure(Call<ResponseRestaurantUser> call , Throwable t) {
+-
+-                 spinner.setVisibility(View.GONE);
+-                 Log.d("errorMessage",t.getMessage());
+-             }
+-         });
+-
+-    }
+-
+ 
+     //Login user function
+     public void LoginUser(User user) {
+ 
+         FoodieClient foodieClient = ServiceGenerator.createService(FoodieClient.class);
+ 
++
+         Call<ResponseUser> call = foodieClient.Login(user);
+ 
++
+         spinner.setVisibility(View.VISIBLE);
+         call.enqueue(new Callback<ResponseUser>() {
+             @Override
+@@ -189,15 +123,13 @@ public class LoginActivity extends AppCompatActivity {
+         LoginButton = (Button) findViewById(R.id.login_btn);
+         InputPhone = (EditText) findViewById(R.id.login_phone_input);
+         InputPassword = (EditText) findViewById(R.id.login_password_input);
+-        InputRestaurantId = (EditText) findViewById(R.id.login_restaurant_id_input);
+-        adminPanelLogin=(TextView)findViewById(R.id.admin_panel_linkLogin);
+-        notAdminPaneLogin=(TextView)findViewById(R.id.not_admin_panel_linkLogn);
++
+     }
+ 
+ 
+     //function for creating user
+     public void CreateUser(String phone, String password) {
+-        user = new User(phone, password);
++        user = new User("91" + phone, password);
+     }
+ 
+ }
+diff --git a/app/src/main/java/org/example/foodie/MainActivity.java b/app/src/main/java/org/example/foodie/MainActivity.java
+index a758d6a..49ac758 100644
+--- a/app/src/main/java/org/example/foodie/MainActivity.java
++++ b/app/src/main/java/org/example/foodie/MainActivity.java
+@@ -1,6 +1,7 @@
+ package org.example.foodie;
+ 
+ 
++import android.app.SearchManager;
+ import android.content.Context;
+ import android.content.Intent;
+ import android.content.SharedPreferences;
+@@ -11,26 +12,23 @@ import android.view.MenuInflater;
+ import android.view.MenuItem;
+ import android.view.View;
+ import android.widget.FrameLayout;
+-import android.widget.ImageView;
+ import android.widget.ProgressBar;
+ import android.widget.TextView;
+ import android.widget.Toast;
+ 
+-import androidx.appcompat.widget.Toolbar;
+-import androidx.appcompat.app.AppCompatActivity;
+-
+ import androidx.appcompat.app.ActionBarDrawerToggle;
+ import androidx.appcompat.app.AppCompatActivity;
++import androidx.appcompat.widget.SearchView;
++import androidx.appcompat.widget.Toolbar;
+ import androidx.core.view.GravityCompat;
+ import androidx.drawerlayout.widget.DrawerLayout;
+ import androidx.fragment.app.Fragment;
+ import androidx.fragment.app.FragmentManager;
+ import androidx.fragment.app.FragmentTransaction;
+ 
+-import com.google.android.material.internal.NavigationMenuPresenter;
+ import com.google.android.material.navigation.NavigationView;
+ 
+-import org.example.foodie.models.ResponseUser;
++import org.example.foodie.models.Restaurant;
+ import org.example.foodie.org.example.foodie.apifetch.FoodieClient;
+ import org.example.foodie.org.example.foodie.apifetch.ServiceGenerator;
+ 
+@@ -40,7 +38,7 @@ import retrofit2.Call;
+ import retrofit2.Callback;
+ import retrofit2.Response;
+ 
+-public class MainActivity extends AppCompatActivity {
++public class MainActivity extends AppCompatActivity implements RestaurantAdapter.RestaurantAdapterListener {
+     private DrawerLayout mDrawer;
+     private Toolbar toolbar;
+     private NavigationView nvDrawer;
+@@ -49,8 +47,10 @@ public class MainActivity extends AppCompatActivity {
+     //NavigationView navigationView;
+     FrameLayout frameLayout;
+     ActionBarDrawerToggle toggle;
+-    public static String user;
+     //Toolbar toolbar;
++    public static SearchView searchView;
++    public static String user;
++    static MainActivity mainActiivity;
+ 
+     // Make sure to be using androidx.appcompat.app.ActionBarDrawerToggle version.
+     private ActionBarDrawerToggle drawerToggle;
+@@ -63,9 +63,9 @@ public class MainActivity extends AppCompatActivity {
+         setContentView(R.layout.activity_main);
+ 
+ 
+-        progressBar = findViewById(R.id.progressBar2);
++//        progressBar = findViewById(R.id.progressBar2);
+ 
+-        progressBar.setVisibility(View.GONE);
++        //      progressBar.setVisibility(View.GONE);
+ 
+         Intent i = getIntent();
+ 
+@@ -83,16 +83,11 @@ public class MainActivity extends AppCompatActivity {
+ 
+         if (token != null) {
+             Log.i("TOKEN", token);
+-
+-            WelcomeActvity.getInstance().finish();
++            if (WelcomeActvity.getInstance() != null)
++                WelcomeActvity.getInstance().finish();
+         }
+ 
+ 
+-
+-
+-
+-
+-
+         // Set a Toolbar to replace the ActionBar.
+         toolbar = (Toolbar) findViewById(R.id.toolbar);
+         setSupportActionBar(toolbar);
+@@ -125,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
+ 
+ 
+         try {
+-            fragmentManager.beginTransaction().replace(R.id.flContent,Home.class.newInstance(),"Home");
++            fragmentManager.beginTransaction().replace(R.id.flContent, Home.class.newInstance(), "Home");
+         } catch (IllegalAccessException e) {
+             e.printStackTrace();
+         } catch (InstantiationException e) {
+@@ -147,18 +142,25 @@ public class MainActivity extends AppCompatActivity {
+     public boolean onOptionsItemSelected(MenuItem item) {
+         // The action bar home/up action should open or close the drawer.
+ 
++        if (item.getItemId() == R.id.action_search) {
++            return true;
++        }
++
+         switch (item.getItemId()) {
+             case android.R.id.home:
+                 mDrawer.openDrawer(GravityCompat.START);
+                 return true;
+             case R.id.action_cart:
+-                Toast.makeText(this,"Cart empty!",Toast.LENGTH_SHORT).show();
++                Intent intent = new Intent(MainActivity.this, CartActivity.class);
++                //getSupportFragmentManager().popBackStackImmediate("frag_back",0);
++                this.startActivity(intent);
+ 
+         }
+ 
+ 
+         return super.onOptionsItemSelected(item);
+     }
++
+     private void setupDrawerContent(NavigationView navigationView) {
+ 
+ 
+@@ -176,68 +178,100 @@ public class MainActivity extends AppCompatActivity {
+     public void selectDrawerItem(MenuItem menuItem) {
+         // Create a new fragment and specify the fragment to show based on nav item clicked
+         Fragment fragment = null;
+-        boolean id=false;
++        boolean id = false;
+         Class fragmentClass = null;
+-        switch(menuItem.getItemId()) {
++        switch (menuItem.getItemId()) {
+ 
+             /*case R.id.childDetails:
+                 fragmentClass = ChildDetails.class;
+                 break;*/
+ 
+             case R.id.home:
+-                id=true;
++                id = true;
+                 fragmentClass = Home.class;
+                 break;
++            case R.id.cart:
++                Intent intent = new Intent(MainActivity.this, CartActivity.class);
++                //getSupportFragmentManager().popBackStackImmediate("frag_back",0);
++                this.startActivity(intent);
++                return;
+             case R.id.logout:
+                 LogoutUser();
+                 return;
+ 
+ 
+ 
+-            default:
+-                fragmentClass = Home.class;
+-        }
+-
+-        try {
+-            fragment = (Fragment) fragmentClass.newInstance();
+-        } catch (Exception e) {
+-            e.printStackTrace();
+         }
+ 
+ 
+-        // Insert the fragment by replacing any existing fragment
+-        FragmentManager fragmentManager = getSupportFragmentManager();
+-
+-
+-//else {
+-        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).addToBackStack("fragBack").commit();
+-
+-        if(!id){
+-        }getFragmentManager().popBackStack();
+         // Highlight the selected item has been done by NavigationView
+-        menuItem.setChecked(true);
++        menuItem.setChecked(false);
+         // Set action bar title
+         setTitle(menuItem.getTitle());
+         // Close the navigation drawer
+         mDrawer.closeDrawers();
+     }
++
+     public void loadFragment(Fragment fragment) {
+         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+         transaction.replace(R.id.flContent, fragment);
+         transaction.commit();
+     }
++
++
+     @Override
+     public boolean onCreateOptionsMenu(Menu menu) {
+         MenuInflater inflater = getMenuInflater();
+ 
+         inflater.inflate(R.menu.main_activity_bar, menu);
+-        return super.onCreateOptionsMenu(menu);
++
++
++        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
++        searchView = (SearchView) menu.findItem(R.id.action_search)
++                .getActionView();
++        searchView.setSearchableInfo(searchManager
++                .getSearchableInfo(getComponentName()));
++        searchView.setMaxWidth(Integer.MAX_VALUE);
++        searchView.setSubmitButtonEnabled(false);
++
++        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
++            @Override
++            public boolean onQueryTextSubmit(String query) {
++                // filter recycler view when query submitted
++
++                return true;
++            }
++
++            @Override
++            public boolean onQueryTextChange(String query) {
++                // filter recycler view when text is changed
++                Home.adapter.getFilter().filter(query);
++                return false;
++            }
++        });
++        return true;
++
++
++
++
++
++
+     }
+ 
++    private void setItemsVisibility(Menu menu, MenuItem exception, boolean visible) {
++        for (int i = 0; i < menu.size(); ++i) {
++            MenuItem item = menu.getItem(i);
++            if (item != exception) item.setVisible(visible);
++        }
++    }
+     @Override
+     public void onBackPressed() {
+ 
+-        finish();
++
++        if (!searchView.isIconified()) {
++            searchView.setIconified(true);
++            return;
++        }
+         super.onBackPressed();
+     }
+ 
+@@ -247,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
+ 
+ 
+         Call<Void> call = foodieClient.Logout(WelcomeActvity.token);
+-        progressBar.setVisibility(View.VISIBLE);
++        //   progressBar.setVisibility(View.VISIBLE);
+ 
+ 
+         call.enqueue(new Callback<Void>() {
+@@ -255,14 +289,13 @@ public class MainActivity extends AppCompatActivity {
+             public void onResponse(Call<Void> call, Response<Void> response) {
+ 
+ 
+-
+                 // Log.i("Response", String.valueOf(response.body().getToken()));
+                 if (response.code() == 200) {
+                     Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+ 
+                     WelcomeActvity.token = null;
+                     Intent intent = new Intent(MainActivity.this, WelcomeActvity.class);
+-                    progressBar.setVisibility(View.GONE);
++                    // progressBar.setVisibility(View.GONE);
+ 
+ 
+                     startActivity(intent);
+@@ -270,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
+                     finish();
+                     deleteToken();
+                 } else {
+-                    progressBar.setVisibility(View.GONE);
++                    //  progressBar.setVisibility(View.GONE);
+ 
+                     Log.i("Response", response.raw().toString());
+                     Toast.makeText(getApplicationContext(), response.raw().toString(), Toast.LENGTH_SHORT).show();
+@@ -295,19 +328,18 @@ public class MainActivity extends AppCompatActivity {
+ 
+         SharedPreferences.Editor editor = sharedPreferences.edit();
+ 
++        CartActivity.cartItems.clear();
++        FoodsActivity.rest_id = null;
+         editor.clear();
++        editor.apply();
+ 
+         editor.commit();
+     }
+ 
+-    public void loadData() {
+-
+-
+-    }
+-
+ 
+-    public interface DataLoadedListener {
+-        public void onDataLoaded(ArrayList<String> data);
++    @Override
++    public void OnRestaurantSelected(Restaurant restaurant) {
++        Toast.makeText(getApplicationContext(), "Selected " + restaurant.getName(), Toast.LENGTH_SHORT);
+ 
+     }
+ 
+diff --git a/app/src/main/java/org/example/foodie/Orders.java b/app/src/main/java/org/example/foodie/Orders.java
+index 837301e..563a70d 100644
+--- a/app/src/main/java/org/example/foodie/Orders.java
++++ b/app/src/main/java/org/example/foodie/Orders.java
+@@ -38,25 +38,6 @@ public class Orders extends Fragment {
+         rootView = inflater.inflate(R.layout.orders_fragment, container, false);
+ 
+ 
+-        mViewModel = ViewModelProviders.of(this).get(OrdersViewModel.class);
+-
+-        mViewModel.init();
+-
+-        mViewModel.getRestaurantRepository().observe(this, new Observer<ResponseUser>() {
+-            @Override
+-            public void onChanged(ResponseUser responseUser) {
+-
+-
+-                if (responseUser.getOrders() != null) {
+-                    adapter = new OrdersAdapter(getActivity());
+-                    adapter.setRestaurants(responseUser.getOrders());
+-                    recyclerView.setAdapter(adapter);
+-                }
+-                adapter.notifyDataSetChanged();
+-            }
+-        });
+-
+-
+         return inflater.inflate(R.layout.orders_fragment, container, false);
+     }
+ 
+diff --git a/app/src/main/java/org/example/foodie/OrdersActivity.java b/app/src/main/java/org/example/foodie/OrdersActivity.java
+new file mode 100644
+index 0000000..1d627c5
+--- /dev/null
++++ b/app/src/main/java/org/example/foodie/OrdersActivity.java
+@@ -0,0 +1,20 @@
++package org.example.foodie;
++
++import androidx.appcompat.app.AppCompatActivity;
++
++import android.os.Bundle;
++
++import org.example.foodie.viewmodels.OrdersViewModel;
++
++public class OrdersActivity extends AppCompatActivity {
++
++    OrdersViewModel ordersViewModel;
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        setContentView(R.layout.activity_orders);
++
++
++    }
++}
+diff --git a/app/src/main/java/org/example/foodie/OrdersAdapter.java b/app/src/main/java/org/example/foodie/OrdersAdapter.java
+index ce82435..0dd49aa 100644
+--- a/app/src/main/java/org/example/foodie/OrdersAdapter.java
++++ b/app/src/main/java/org/example/foodie/OrdersAdapter.java
+@@ -40,7 +40,10 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.CustomView
+ 
+     @Override
+     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
++
++
+         //set Elements here
++
+     }
+ 
+     @Override
+diff --git a/app/src/main/java/org/example/foodie/RegisterActivity.java b/app/src/main/java/org/example/foodie/RegisterActivity.java
+index a1a9b25..9658b47 100644
+--- a/app/src/main/java/org/example/foodie/RegisterActivity.java
++++ b/app/src/main/java/org/example/foodie/RegisterActivity.java
+@@ -82,13 +82,12 @@ public class RegisterActivity extends AppCompatActivity {
+             public void onClick(View v) {
+   /*            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                 startActivity(intent);*/
+-             if (adminPanelRegister.getVisibility()==View.VISIBLE) { //i.e. a new normal user is creating a ac
++             if (adminPanelRegister.getVisibility()==View.VISIBLE) { //i.e. anew normal user is creating a ac
+                  CreateUser(InputName.getText().toString(), InputEmail.getText().toString(), InputPassword.getText().toString(), InputAddress.getText().toString(), "+91" + InputPhoneNumber.getText().toString());
+                  RegisterUser(user);
+              } else {  //for a restaturant user
+-
+-                 CreateRestaturantUser();
+-             }
++                  CreateRestaturantUser();
++               }
+             }
+         });
+         if (user.getToken() != null) {
+@@ -165,6 +164,7 @@ public class RegisterActivity extends AppCompatActivity {
+ 
+    public  void CreateRestaturantUser()
+    {
++
+        FoodieClient foodieClient = ServiceGenerator.createService(FoodieClient.class);
+        superAdminUser=new SuperAdminUser(username,password);
+        restaurantUser=new RestaurantUser(InputName.getText().toString(),
+@@ -181,16 +181,13 @@ public class RegisterActivity extends AppCompatActivity {
+                if (response.code() == 201) {
+                    Toast.makeText(getApplicationContext() , "Success!" , Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(RegisterActivity.this, RestaurantFoodAdd.class);
+-
++                   startActivity(intent);
+                    intent.putExtra("token", response.body().getToken());//for further functionality need this token id
+                    intent.putExtra("name",InputName.getText().toString());
+                    intent.putExtra("restId",RestaurantIdInput.getText().toString());
+                    intent.putExtra("address",InputAddress.getText().toString());
+-                   startActivity(intent);
+                    progressBar.setVisibility(View.GONE);
+-                   finish();
+                    WelcomeActvity.getInstance().finish();
+-
+                }
+            }
+ 
+diff --git a/app/src/main/java/org/example/foodie/RestaurantAdapter.java b/app/src/main/java/org/example/foodie/RestaurantAdapter.java
+index 069562a..4079464 100644
+--- a/app/src/main/java/org/example/foodie/RestaurantAdapter.java
++++ b/app/src/main/java/org/example/foodie/RestaurantAdapter.java
+@@ -1,21 +1,30 @@
+ package org.example.foodie;
+ 
++import android.app.AlertDialog;
+ import android.content.Context;
+ 
++import android.content.DialogInterface;
+ import android.content.Intent;
++import android.content.IntentFilter;
++import android.content.SharedPreferences;
+ import android.content.pm.PackageManager;
+ import android.util.Log;
++import android.view.ContextThemeWrapper;
+ import android.view.LayoutInflater;
+ import android.view.View;
+ import android.view.ViewGroup;
++import android.widget.Filter;
++import android.widget.Filterable;
+ import android.widget.ImageView;
+ import android.widget.TextView;
++import android.widget.Toast;
+ 
+ import androidx.annotation.NonNull;
+ import androidx.cardview.widget.CardView;
+ import androidx.fragment.app.Fragment;
+ import androidx.fragment.app.FragmentActivity;
+ import androidx.fragment.app.FragmentManager;
++import androidx.lifecycle.Observer;
+ import androidx.recyclerview.widget.RecyclerView;
+ 
+ import com.bumptech.glide.Glide;
+@@ -26,16 +35,18 @@ import java.util.ArrayList;
+ import java.util.List;
+ 
+ 
+-public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.CustomViewHolder> {
++public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.CustomViewHolder> implements Filterable {
+     private FragmentManager f_manager;
+     private Context context;
+     private List<Restaurant> items;
+-
++    private List<Restaurant> filteredResturants;
++    private RestaurantAdapterListener listener;
++    AlertDialog.Builder restAlert;
+ 
+     public RestaurantAdapter(Context context) {
+         this.context = context;
+ 
+-        // this.items = items;
++
+     }
+ 
+ 
+@@ -47,18 +58,64 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Cu
+     }
+     @Override
+     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
+-        holder.restaurantName.setText(items.get(position).getName());
+-
++        holder.restaurantName.setText(filteredResturants.get(position).getName());
+ 
++        Log.i("Filtered: ", filteredResturants.get(0).getName());
+         holder.restaurantCard.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View view) {
+ 
+-                FoodsActivity.id = items.get(position).getId();
+-                Log.i("AFNAN", String.valueOf(items.get(position).getId()));
++                FoodsActivity.id = filteredResturants.get(position).getId();
++                SharedPreferences sharedPreferences = context.getSharedPreferences("org.example.foodie", Context.MODE_PRIVATE);
++
++                CartActivity.getPrefernce(sharedPreferences);
++
++                restAlert = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AlertDialogCustom));
++                Log.i("AFNAN", String.valueOf(filteredResturants.get(position).getId()));
++                if (!CartActivity.cartItems.isEmpty()) {//TODO:Build an alert dialog builder
++                    if (!FoodsActivity.rest_id.equals(FoodsActivity.id)) {
++                      /*  Toast.makeText(context, "CART CONTAINS ITEMS FROM ANOTHER RESTAURANT",
++                                Toast.LENGTH_SHORT).show();*/
++                        restAlert.setTitle("Cart contains items from other restaurants");
++                        restAlert.setMessage("Empty Cart to continue").setCancelable(true).setPositiveButton("Empty Cart",
++                                new DialogInterface.OnClickListener() {
++                                    @Override
++                                    public void onClick(DialogInterface dialogInterface, int i) {
++
++                                        CartActivity.cartItems.clear();
++                                        CartActivity.saveData(sharedPreferences);
++                                        Intent intent = new Intent(context, FoodsActivity.class);
++                                        CartActivity.saveData(sharedPreferences);
++                                        intent.putExtra("restaurant name", filteredResturants.get(position).getName());
++                                        context.startActivity(intent);
++
++
++                                    }
++                                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
++                            @Override
++                            public void onClick(DialogInterface dialogInterface, int i) {
++                                return;
++                            }
++                        });
++
++                        AlertDialog alert = restAlert.create();
++                        alert.show();
++
++                    } else {
++                        FoodsActivity.rest_id = FoodsActivity.id;
++                        Intent i = new Intent(context, FoodsActivity.class);
++                        CartActivity.saveData(sharedPreferences);
++                        i.putExtra("restaurant name", filteredResturants.get(position).getName());
++                        context.startActivity(i);
++                    }
+ 
+-                Intent i = new Intent(context, FoodsActivity.class);
+-                context.startActivity(i);
++                } else {
++                    FoodsActivity.rest_id = FoodsActivity.id;
++                    Intent i = new Intent(context, FoodsActivity.class);
++                    CartActivity.saveData(sharedPreferences);
++                    i.putExtra("restaurant name", filteredResturants.get(position).getName());
++                    context.startActivity(i);
++                }
+ 
+                 //   f_manager.popBackStack();
+             }
+@@ -72,7 +129,61 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Cu
+     }
+     @Override
+     public int getItemCount() {
+-        return items.size();
++        return filteredResturants.size();
++    }
++
++    @Override
++    public Filter getFilter() {
++
++        return new Filter() {
++            @Override
++            protected FilterResults performFiltering(CharSequence charSequence) {
++
++                String charString = charSequence.toString();
++                if (charString.isEmpty()) {
++                    filteredResturants = items;
++                } else {
++                    List<Restaurant> filteredList = new ArrayList<>();
++                    for (Restaurant row : items) {
++
++                        // name match condition. this might differ depending on your requirement
++                        // here we are looking for name or phone number match
++                        if (row.getName().toLowerCase().contains(charString.toLowerCase()) || row.getName().contains(charSequence)) {
++                            filteredList.add(row);
++                        }
++                    }
++
++                    filteredResturants = filteredList;
++                }
++
++                FilterResults filterResults = new FilterResults();
++                filterResults.values = filteredResturants;
++                return filterResults;
++            }
++
++            @Override
++            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
++                filteredResturants = (List<Restaurant>) filterResults.values;
++                notifyDataSetChanged();
++            }
++        };
++
++
++    }
++
++    public void setRestaurant(List<Restaurant> restaurants) {
++        this.filteredResturants = restaurants;
++        this.items = restaurants;
++
++    }
++
++    /*public void setRestaurants(List<Restaurant> restaurantsList) {
++        this.items = restaurantsList;
++        notifyDataSetChanged();
++    }
++*/
++    public interface RestaurantAdapterListener {
++        void OnRestaurantSelected(Restaurant restaurant);
+     }
+ 
+     public class CustomViewHolder extends RecyclerView.ViewHolder {
+@@ -86,27 +197,12 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Cu
+             super(view);
+             itemImage = view.findViewById(R.id.item_image);
+             restaurantName = view.findViewById(R.id.restaurantName);
+-            rating = view.findViewById(R.id.rating);
+             eta = view.findViewById(R.id.eta);
+             description = view.findViewById(R.id.description);
+             restaurantCard = view.findViewById(R.id.restaurant);
+ 
+-          /*  if (mOnItemCLickListener != null) {
+-                restaurantCard.setOnClickListener(new View.OnClickListener() {
+-                    @Override
+-                    public void onClick(View view) {
+-                        mOnItemCLickListener.OnItemClick(getAdapterPosition());
+-
+-                    }
+-                });
+ 
+-            }*/
+         }
+     }
+-    public void setRestaurants(List<Restaurant> restaurantsList) {
+-        this.items = restaurantsList;
+-        notifyDataSetChanged();
+-    }
+-
+ 
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/org/example/foodie/RestaurantFoodAdd.java b/app/src/main/java/org/example/foodie/RestaurantFoodAdd.java
+index a832193..95e1754 100644
+--- a/app/src/main/java/org/example/foodie/RestaurantFoodAdd.java
++++ b/app/src/main/java/org/example/foodie/RestaurantFoodAdd.java
+@@ -1,83 +1,182 @@
+ package org.example.foodie;
+ 
++import androidx.appcompat.app.ActionBarDrawerToggle;
+ import androidx.appcompat.app.AppCompatActivity;
++import androidx.appcompat.widget.Toolbar;
++import androidx.core.view.GravityCompat;
++import androidx.drawerlayout.widget.DrawerLayout;
++import androidx.fragment.app.Fragment;
++import androidx.fragment.app.FragmentManager;
++import androidx.fragment.app.FragmentTransaction;
+ 
+ import android.content.Intent;
+ import android.os.Bundle;
++import android.view.Menu;
++import android.view.MenuInflater;
++import android.view.MenuItem;
+ import android.view.View;
+-import android.widget.Button;
+-import android.widget.EditText;
++import android.widget.FrameLayout;
+ import android.widget.ImageView;
++import android.widget.ProgressBar;
+ import android.widget.TextView;
+-import android.widget.Toast;
+ 
+-import org.example.foodie.models.Food;
+-import org.example.foodie.models.Foodid;
+-import org.example.foodie.org.example.foodie.apifetch.FoodieClient;
+-import org.example.foodie.org.example.foodie.apifetch.ServiceGenerator;
+-
+-import retrofit2.Call;
+-import retrofit2.Callback;
+-import retrofit2.Response;
++import com.google.android.material.navigation.NavigationView;
+ 
+ public class RestaurantFoodAdd extends AppCompatActivity {
+-    TextView restaurantName, restaurantInfo;
+-    ImageView restaurantImage;
+-    EditText foodName,foodprice;
+-    Button addFood;
+-    String token;
+-    View progressBar;
++    private TextView restaurantName, restaurantInfo;
++    private ImageView restaurantImage;
++
++
++    //DrawerLayout drawer;
++    //NavigationView navigationView;
++    FrameLayout frameLayout;
++    ActionBarDrawerToggle toggle;
++    private DrawerLayout mDrawer;
++    private Toolbar toolbar;
++    private NavigationView nvDrawer;
++    private ProgressBar progressBar;
++
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_restaurant_food_add);
+-        progressBar = findViewById(R.id.progressBarAddFood);
+-        progressBar.setVisibility(View.GONE);
+-        initWidget();
+-        Intent intent = getIntent();
+-        token=intent.getStringExtra("token");
+-       // Toast.makeText(RestaurantFoodAdd.this , token , Toast.LENGTH_LONG).show();
+-        restaurantName.setText(intent.getStringExtra("name"));
+-        restaurantInfo.setText(intent.getStringExtra("restId")+"\n"+intent.getStringExtra("address"));
+-        addFood.setOnClickListener(new View.OnClickListener() {
+-            @Override
+-            public void onClick(View v) {
+-                PostFoodToRestaurantList();
+-            }
+-        });
++        // Set a Toolbar to replace the ActionBar.
++        toolbar = (Toolbar) findViewById(R.id.toolbar);
++        setSupportActionBar(toolbar);
++
++        // This will display an Up icon (<-), we will replace it with hamburger later
++        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
++
++        // Find our drawer view
++        mDrawer = (DrawerLayout) findViewById(R.id.rest_drawer_layout);
++
++        nvDrawer = (NavigationView) findViewById(R.id.navView);
++
++
++        View headerView = nvDrawer.getHeaderView(0);
++
++
++        // Setup drawer view
++        setupDrawerContent(nvDrawer);
++        //FragmentManager fragmentManager=new F;
++
++        frameLayout = (FrameLayout) findViewById(R.id.restaurantLayout);
++        //View headerLayout = nvDrawer.inflateHeaderView(R.layout.nav_header);
++        toggle = new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
++        mDrawer.addDrawerListener(toggle);
++        toggle.syncState();
++
++        FragmentManager fragmentManager = getSupportFragmentManager();
++
++
++        try {
++            fragmentManager.beginTransaction().replace(R.id.restaurantLayout, ResturantHome.class.newInstance(), "Home");
++        } catch (IllegalAccessException e) {
++            e.printStackTrace();
++        } catch (InstantiationException e) {
++            e.printStackTrace();
++        }
++
++
++        //set default fragment
++        loadFragment(new ResturantHome());
++
+     }
+ 
+-    public void initWidget() {
+-        restaurantName = (TextView) findViewById(R.id.restaurantName);
+-        restaurantInfo = (TextView) findViewById(R.id.restaurantInfo);
+-        restaurantImage = (ImageView) findViewById(R.id.restaurantProfile);
+-        foodName=(EditText)findViewById(R.id.foodName);
+-        foodprice=(EditText)findViewById(R.id.foodPrice);
+-        addFood=(Button)findViewById(R.id.addFood);
++
++    @Override
++    public boolean onOptionsItemSelected(MenuItem item) {
++        // The action bar home/up action should open or close the drawer.
++
++        switch (item.getItemId()) {
++            case android.R.id.home:
++                mDrawer.openDrawer(GravityCompat.START);
++                return true;
++
++        }
++
++
++        return super.onOptionsItemSelected(item);
+     }
+-    public void PostFoodToRestaurantList()
+-    {
+-        FoodieClient foodieClient = ServiceGenerator.createService(FoodieClient.class);
+-        Food food=new Food(foodName.getText().toString(),foodprice.getText().toString());
+-        Call<Foodid> foodCall=foodieClient.postFood(token,food);
+-        progressBar.setVisibility(View.VISIBLE);
+-        foodCall.enqueue(new Callback<Foodid>() {
+-            @Override
+-            public void onResponse(Call<Foodid> call , Response<Foodid> response) {
+-                if(response.code()==201){
+-                    Toast.makeText(RestaurantFoodAdd.this ,response.body().getName() +" added Successfully.", Toast.LENGTH_SHORT).show();
+-                    foodName.setText("");
+-                    foodprice.setText("");
+-                    addFood.setText("Add More To Food List");
+-                    progressBar.setVisibility(View.INVISIBLE);
+-                }
+-            }
+-
+-            @Override
+-            public void onFailure(Call<Foodid> call , Throwable t) {
+-                Toast.makeText(RestaurantFoodAdd.this ,t.getMessage() , Toast.LENGTH_SHORT).show();
+-                progressBar.setVisibility(View.INVISIBLE);
+-            }
+-        });
++
++    private void setupDrawerContent(NavigationView navigationView) {
++
++
++        navigationView.setNavigationItemSelectedListener(
++                new NavigationView.OnNavigationItemSelectedListener() {
++                    @Override
++                    public boolean onNavigationItemSelected(MenuItem menuItem) {
++                        selectDrawerItem(menuItem);
++                        return true;
++                    }
++                });
++
+     }
++
++    public void selectDrawerItem(MenuItem menuItem) {
++        // Create a new fragment and specify the fragment to show based on nav item clicked
++        Fragment fragment = null;
++        boolean id = false;
++        Class fragmentClass = null;
++        switch (menuItem.getItemId()) {
++
++            /*case R.id.childDetails:
++                fragmentClass = ChildDetails.class;
++                break;*/
++
++            case R.id.home:
++                id = true;
++                fragmentClass = ResturantHome.class;
++                break;
++            default:
++                fragmentClass = ResturantHome.class;
++        }
++
++        try {
++            fragment = (Fragment) fragmentClass.newInstance();
++        } catch (Exception e) {
++            e.printStackTrace();
++        }
++
++
++        // Insert the fragment by replacing any existing fragment
++        FragmentManager fragmentManager = getSupportFragmentManager();
++
++
++//else {
++        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).addToBackStack("fragBack").commit();
++
++        if (!id) {
++        }
++        getFragmentManager().popBackStack();
++        // Highlight the selected item has been done by NavigationView
++        menuItem.setChecked(true);
++        // Set action bar title
++        setTitle(menuItem.getTitle());
++        // Close the navigation drawer
++        mDrawer.closeDrawers();
++    }
++
++    public void loadFragment(Fragment fragment) {
++        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
++        transaction.replace(R.id.restaurantLayout, fragment);
++        transaction.commit();
++    }
++
++    /*  @Override
++      public boolean onCreateOptionsMenu(Menu menu) {
++          MenuInflater inflater = getMenuInflater();
++
++          inflater.inflate(R.menu.main_activity_bar, menu);
++          return super.onCreateOptionsMenu(menu);
++      }
++  */
++    @Override
++    public void onBackPressed() {
++
++        finish();
++        super.onBackPressed();
++    }
++
++
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/org/example/foodie/ResturantHome.java b/app/src/main/java/org/example/foodie/ResturantHome.java
+new file mode 100644
+index 0000000..2ab1519
+--- /dev/null
++++ b/app/src/main/java/org/example/foodie/ResturantHome.java
+@@ -0,0 +1,36 @@
++package org.example.foodie;
++
++import android.content.Context;
++import android.net.Uri;
++import android.os.Bundle;
++
++import androidx.fragment.app.Fragment;
++
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++
++public class ResturantHome extends Fragment {
++
++
++    @Override
++    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++
++
++    }
++
++    @Override
++    public View onCreateView(LayoutInflater inflater, ViewGroup container,
++                             Bundle savedInstanceState) {
++        // Inflate the layout for this fragment
++        return inflater.inflate(R.layout.fragment_resturant_home, container, false);
++    }
++
++
++    @Override
++    public void onAttach(Context context) {
++        super.onAttach(context);
++    }
++
++}
+diff --git a/app/src/main/java/org/example/foodie/WelcomeActvity.java b/app/src/main/java/org/example/foodie/WelcomeActvity.java
+index 026efe4..bc665f9 100644
+--- a/app/src/main/java/org/example/foodie/WelcomeActvity.java
++++ b/app/src/main/java/org/example/foodie/WelcomeActvity.java
+@@ -43,7 +43,7 @@ public class WelcomeActvity extends AppCompatActivity {
+         if (token != null) {
+             Intent i = new Intent(this, MainActivity.class);
+             i.putExtra("token", token);
+-
++            // welcomeActvity.finish();
+ 
+             startActivity(i);
+         }
+diff --git a/app/src/main/java/org/example/foodie/models/Food.java b/app/src/main/java/org/example/foodie/models/Food.java
+index 7bc06f2..edbefe6 100644
+--- a/app/src/main/java/org/example/foodie/models/Food.java
++++ b/app/src/main/java/org/example/foodie/models/Food.java
+@@ -10,8 +10,11 @@ public class Food {
+     public Foodid foodid;
+     @SerializedName("price")
+     public String price;
+-    @SerializedName("_id")
++    @SerializedName("id")
+     String _id;
++    @SerializedName("quantity")
++    int count;
++
+ 
+ 
+     public Food(String foodName , String price) {
+@@ -35,6 +38,12 @@ public class Food {
+         this.foodid = foodid;
+         this._id = _id;
+         this.price = price;
++        this.count = 0;
++    }
++
++    public Food(String _id, int count) {
++        this._id = _id;
++        this.count = count;
+     }
+ 
+     public Food(String price) {
+@@ -54,4 +63,29 @@ public class Food {
+     public Foodid getFoodid() {
+         return foodid;
+     }
++
++
++    public void addCount() {
++        this.count = count + 1;
++//setCount(this.count);
++    }
++
++
++    public void decreaseCount() {
++        this.count = count - 1;
++        setCount(this.count);
++    }
++
++    public String get_id() {
++        return _id;
++    }
++
++    public int getCount() {
++        return count;
++    }
++
++    public void setCount(int count) {
++        this.count = count;
++    }
++
+ }
+diff --git a/app/src/main/java/org/example/foodie/models/Foodid.java b/app/src/main/java/org/example/foodie/models/Foodid.java
+index 82ae3af..d9a7c6a 100644
+--- a/app/src/main/java/org/example/foodie/models/Foodid.java
++++ b/app/src/main/java/org/example/foodie/models/Foodid.java
+@@ -29,4 +29,8 @@ public class Foodid {
+     public String getName() {
+         return name;
+     }
++
++    public String get_id() {
++        return this._id;
++    }
+ }
+diff --git a/app/src/main/java/org/example/foodie/models/Order.java b/app/src/main/java/org/example/foodie/models/Order.java
+index 4b6e6d4..def7713 100644
+--- a/app/src/main/java/org/example/foodie/models/Order.java
++++ b/app/src/main/java/org/example/foodie/models/Order.java
+@@ -12,16 +12,57 @@ import java.util.List;
+ 
+ public class Order {
+ 
+-    @SerializedName("_id")
+-    public long id;
++
++    public double totalPrice;
+     @SerializedName("user")
+     public User user;
+-    public double totalPrice;
++    @SerializedName("restaurant")
++    Restaurant restaurant;
++    @SerializedName("payment")
++    Payment payment;
++    @SerializedName("_id")
++    String _id;
+     @SerializedName("foods")
+-    List<Food> foodList;
++    List<OrderFood> foodList = new ArrayList<>();
++
++    @SerializedName("restaurantId")
++    String restaurantId;
++
+     List<Restaurant> restaurantList;
+ 
+-/*
++    public Order(String restaurantId, List<OrderFood> foodList, Payment payment) {
++        this.payment = payment;
++        this.foodList = foodList;
++        this.restaurantId = restaurantId;
++    }
++
++
++    public Payment getPayment() {
++        return payment;
++    }
++
++
++    public User getUser() {
++        return user;
++    }
++
++    public double getTotalPrice() {
++        return totalPrice;
++    }
++
++    public List<OrderFood> getFoodList() {
++        return foodList;
++    }
++
++    public String getRestaurantId() {
++        return restaurantId;
++    }
++
++    public List<Restaurant> getRestaurantList() {
++        return restaurantList;
++    }
++
++    /*
+     foods	[...]
+     restaurant	{...}
+     user	{...}
+@@ -47,20 +88,3 @@ public class Order {
+ }
+ 
+ 
+-class Payment {
+-
+-    @SerializedName("method")
+-    String method;
+-
+-    @SerializedName("status")
+-    String status;
+-
+-    @SerializedName("total")
+-    String total;
+-
+-    public Payment(String method, String status, String total) {
+-        this.method = method;
+-        this.status = status;
+-        this.total = total;
+-    }
+-}
+\ No newline at end of file
+diff --git a/app/src/main/java/org/example/foodie/models/OrderFood.java b/app/src/main/java/org/example/foodie/models/OrderFood.java
+new file mode 100644
+index 0000000..ed3718c
+--- /dev/null
++++ b/app/src/main/java/org/example/foodie/models/OrderFood.java
+@@ -0,0 +1,47 @@
++package org.example.foodie.models;
++
++import com.google.gson.annotations.SerializedName;
++
++public class OrderFood {
++
++
++    @SerializedName("name")
++    public String foodName;
++
++    @SerializedName("price")
++    public int price;
++    @SerializedName("foodid")
++    String _id;
++    @SerializedName("quantity")
++    int count;
++
++
++    public OrderFood(String _id, int count) {
++        this._id = _id;
++        this.count = count;
++    }
++
++    public String getFoodName() {
++        return foodName;
++    }
++
++    public void setFoodName(String foodName) {
++        this.foodName = foodName;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public void addCount() {
++        this.count = count + 1;
++//setCount(this.count);
++    }
++
++
++    public String get_id() {
++        return _id;
++    }
++
++
++}
+diff --git a/app/src/main/java/org/example/foodie/models/Payment.java b/app/src/main/java/org/example/foodie/models/Payment.java
+new file mode 100644
+index 0000000..76fe3bd
+--- /dev/null
++++ b/app/src/main/java/org/example/foodie/models/Payment.java
+@@ -0,0 +1,21 @@
++package org.example.foodie.models;
++
++import com.google.gson.annotations.SerializedName;
++
++public class Payment {
++
++    @SerializedName("method")
++    String method;
++
++    @SerializedName("status")
++    String status;
++
++    @SerializedName("total")
++    int total;
++
++    public Payment(String method, String status) {
++        this.method = method;
++        this.status = status;
++
++    }
++}
+diff --git a/app/src/main/java/org/example/foodie/models/Restaurant.java b/app/src/main/java/org/example/foodie/models/Restaurant.java
+index 0d51fb1..d445877 100644
+--- a/app/src/main/java/org/example/foodie/models/Restaurant.java
++++ b/app/src/main/java/org/example/foodie/models/Restaurant.java
+@@ -49,10 +49,7 @@ public class Restaurant {
+ 
+ 
+ 
+-    public void deleteOrder(Order order) {
+-        orderList.remove(order.id);
+ 
+-    }
+ 
+     public String getName() {
+         return name;
+diff --git a/app/src/main/java/org/example/foodie/org/example/foodie/apifetch/FoodieClient.java b/app/src/main/java/org/example/foodie/org/example/foodie/apifetch/FoodieClient.java
+index c188cc1..95596a9 100644
+--- a/app/src/main/java/org/example/foodie/org/example/foodie/apifetch/FoodieClient.java
++++ b/app/src/main/java/org/example/foodie/org/example/foodie/apifetch/FoodieClient.java
+@@ -1,22 +1,27 @@
+ package org.example.foodie.org.example.foodie.apifetch;
+ 
+ 
+-import org.example.foodie.models.Food;
+-import org.example.foodie.models.Foodid;
+-import org.example.foodie.models.RestaurantLogIn.ResponseRestaurantUser;
++import com.google.gson.JsonObject;
++
++import org.example.foodie.models.Order;
+ import org.example.foodie.models.ResponseUser;
+ import org.example.foodie.models.Restaurant;
+ import org.example.foodie.models.RestaurantCreate.RestaurantCreate;
+-import org.example.foodie.models.RestaurantLogIn.RestaurantUser;
+ import org.example.foodie.models.User;
++import org.json.JSONObject;
+ 
+ import java.util.List;
++import java.util.Objects;
+ 
++import okhttp3.MediaType;
+ import retrofit2.Call;
+ import retrofit2.http.Body;
+ import retrofit2.http.GET;
+ import retrofit2.http.Header;
++import retrofit2.http.Headers;
+ import retrofit2.http.POST;
++import retrofit2.http.PUT;
++import retrofit2.http.Path;
+ 
+ public interface FoodieClient {
+     //Create user endpoint
+@@ -35,22 +40,23 @@ public interface FoodieClient {
+     @GET("user/me")
+     Call<ResponseUser> getData(@Header("Authorization") String token);
+ 
++    //Ordering route for user
++    @POST("user/order")
++    Call<Order> placeOrder(@Header("Authorization") String token, @Body Order order);
++
++
+ 
+     //Connecting to endpoint to see all restaurants available
+     @GET("restaurant")
+     Call<List<Restaurant>> getRestaurant();
+ 
++    @GET("restaurant/{id}")
++    Call<Restaurant> getFood(@Path("id") String id);
++
++
+     //Restaturant create
+     @POST("restaurant")
+     Call<ResponseUser> createRestaurant(@Body RestaurantCreate restaurantCreate);
+ 
+-    //Get all foods of restaurant
+-    @GET("food")
+-    Call<Restaurant> getFood(String id);
+-    //adding food to particular restaurant
+-    @POST("food")
+-    Call<Foodid> postFood(@Header("Authorization") String token, @Body Food food);
+-    //log in restautant
+-    @POST("restaurant/login")
+-    Call<ResponseRestaurantUser> logInRestaurant(@Body RestaurantUser restaurantUser);
++
+ }
+\ No newline at end of file
+diff --git a/app/src/main/res/drawable-mdpi/twotone_add_circle_outline_24.xml b/app/src/main/res/drawable-mdpi/twotone_add_circle_outline_24.xml
+new file mode 100644
+index 0000000..e8e299d
+--- /dev/null
++++ b/app/src/main/res/drawable-mdpi/twotone_add_circle_outline_24.xml
+@@ -0,0 +1,10 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:tint="?attr/colorControlNormal"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M13,7h-2v4L7,11v2h4v4h2v-4h4v-2h-4zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z" />
++</vector>
+diff --git a/app/src/main/res/drawable-mdpi/twotone_remove_circle_outline_24.xml b/app/src/main/res/drawable-mdpi/twotone_remove_circle_outline_24.xml
+new file mode 100644
+index 0000000..f9d05cf
+--- /dev/null
++++ b/app/src/main/res/drawable-mdpi/twotone_remove_circle_outline_24.xml
+@@ -0,0 +1,10 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:tint="?attr/colorControlNormal"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M7,11h10v2L7,13zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z" />
++</vector>
+diff --git a/app/src/main/res/drawable-v24/back_g.jpg b/app/src/main/res/drawable-v24/back_g.jpg
+new file mode 100644
+index 0000000..dac5c68
+Binary files /dev/null and b/app/src/main/res/drawable-v24/back_g.jpg differ
+diff --git a/app/src/main/res/drawable-v24/round_fastfood_black_18dp.png b/app/src/main/res/drawable-v24/round_fastfood_black_18dp.png
+new file mode 100644
+index 0000000..c8b43d1
+Binary files /dev/null and b/app/src/main/res/drawable-v24/round_fastfood_black_18dp.png differ
+diff --git a/app/src/main/res/drawable-v24/round_restaurant_black_18dp.png b/app/src/main/res/drawable-v24/round_restaurant_black_18dp.png
+new file mode 100644
+index 0000000..eced772
+Binary files /dev/null and b/app/src/main/res/drawable-v24/round_restaurant_black_18dp.png differ
+diff --git a/app/src/main/res/drawable-v24/twotone_help_24.xml b/app/src/main/res/drawable-v24/twotone_help_24.xml
+new file mode 100644
+index 0000000..b5da5d9
+--- /dev/null
++++ b/app/src/main/res/drawable-v24/twotone_help_24.xml
+@@ -0,0 +1,15 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:tint="?attr/colorControlNormal"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillAlpha="0.3"
++        android:fillColor="@android:color/white"
++        android:pathData="M12,4c-4.41,0 -8,3.59 -8,8s3.59,8 8,8 8,-3.59 8,-8 -3.59,-8 -8,-8zM13,18h-2v-2h2v2zM13,15h-2c0,-3.25 3,-3 3,-5 0,-1.1 -0.9,-2 -2,-2s-2,0.9 -2,2L8,10c0,-2.21 1.79,-4 4,-4s4,1.79 4,4c0,2.5 -3,2.75 -3,5z"
++        android:strokeAlpha="0.3" />
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M11,16h2v2h-2zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8zM12,6c-2.21,0 -4,1.79 -4,4h2c0,-1.1 0.9,-2 2,-2s2,0.9 2,2c0,2 -3,1.75 -3,5h2c0,-2.25 3,-2.5 3,-5 0,-2.21 -1.79,-4 -4,-4z" />
++</vector>
+diff --git a/app/src/main/res/drawable-v24/twotone_home_24.xml b/app/src/main/res/drawable-v24/twotone_home_24.xml
+new file mode 100644
+index 0000000..50c0d72
+--- /dev/null
++++ b/app/src/main/res/drawable-v24/twotone_home_24.xml
+@@ -0,0 +1,15 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:tint="?attr/colorControlNormal"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M12,3L2,12h3v8h6v-6h2v6h6v-8h3L12,3zM17,18h-2v-6L9,12v6L7,18v-7.81l5,-4.5 5,4.5L17,18z" />
++    <path
++        android:fillAlpha="0.3"
++        android:fillColor="@android:color/white"
++        android:pathData="M7,10.19V18h2v-6h6v6h2v-7.81l-5,-4.5z"
++        android:strokeAlpha="0.3" />
++</vector>
+diff --git a/app/src/main/res/drawable-v24/twotone_power_settings_new_24.xml b/app/src/main/res/drawable-v24/twotone_power_settings_new_24.xml
+new file mode 100644
+index 0000000..d5fb237
+--- /dev/null
++++ b/app/src/main/res/drawable-v24/twotone_power_settings_new_24.xml
+@@ -0,0 +1,10 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:tint="?attr/colorControlNormal"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M13,3h-2v10h2L13,3zM17.83,5.17l-1.42,1.42C17.99,7.86 19,9.81 19,12c0,3.87 -3.13,7 -7,7s-7,-3.13 -7,-7c0,-2.19 1.01,-4.14 2.58,-5.42L6.17,5.17C4.23,6.82 3,9.26 3,12c0,4.97 4.03,9 9,9s9,-4.03 9,-9c0,-2.74 -1.23,-5.18 -3.17,-6.83z" />
++</vector>
+diff --git a/app/src/main/res/drawable-v24/twotone_restaurant_menu_24.xml b/app/src/main/res/drawable-v24/twotone_restaurant_menu_24.xml
+new file mode 100644
+index 0000000..0ab4f90
+--- /dev/null
++++ b/app/src/main/res/drawable-v24/twotone_restaurant_menu_24.xml
+@@ -0,0 +1,10 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:tint="?attr/colorControlNormal"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M8.1,13.34l2.83,-2.83L3.91,3.5c-1.56,1.56 -1.56,4.09 0,5.66l4.19,4.18zM20.15,10.15c1.91,-1.91 2.28,-4.65 0.81,-6.12 -1.46,-1.46 -4.2,-1.1 -6.12,0.81 -1.59,1.59 -2.09,3.74 -1.38,5.27L3.7,19.87l1.41,1.41L12,14.41l6.88,6.88 1.41,-1.41L13.41,13l1.47,-1.47c1.53,0.71 3.68,0.21 5.27,-1.38z" />
++</vector>
+diff --git a/app/src/main/res/drawable-v24/twotone_shopping_cart_24.xml b/app/src/main/res/drawable-v24/twotone_shopping_cart_24.xml
+new file mode 100644
+index 0000000..17a7541
+--- /dev/null
++++ b/app/src/main/res/drawable-v24/twotone_shopping_cart_24.xml
+@@ -0,0 +1,15 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:tint="?attr/colorControlNormal"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillAlpha="0.3"
++        android:fillColor="@android:color/white"
++        android:pathData="M15.55,11l2.76,-5H6.16l2.37,5z"
++        android:strokeAlpha="0.3" />
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M15.55,13c0.75,0 1.41,-0.41 1.75,-1.03l3.58,-6.49c0.37,-0.66 -0.11,-1.48 -0.87,-1.48L5.21,4l-0.94,-2L1,2v2h2l3.6,7.59 -1.35,2.44C4.52,15.37 5.48,17 7,17h12v-2L7,15l1.1,-2h7.45zM6.16,6h12.15l-2.76,5L8.53,11L6.16,6zM7,18c-1.1,0 -1.99,0.9 -1.99,2S5.9,22 7,22s2,-0.9 2,-2 -0.9,-2 -2,-2zM17,18c-1.1,0 -1.99,0.9 -1.99,2s0.89,2 1.99,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" />
++</vector>
+diff --git a/app/src/main/res/drawable/layout_bg.xml b/app/src/main/res/drawable/layout_bg.xml
+new file mode 100644
+index 0000000..35d0ecf
+--- /dev/null
++++ b/app/src/main/res/drawable/layout_bg.xml
+@@ -0,0 +1,13 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android">
++    <solid android:color="@color/colorPrimary" />
++    <stroke
++        android:width="3dp"
++        android:color="@color/colorPrimaryDark" />
++    <corners android:radius="10dp" />
++    <padding
++        android:bottom="0dp"
++        android:left="0dp"
++        android:right="0dp"
++        android:top="0dp" />
++</shape>
+\ No newline at end of file
+diff --git a/app/src/main/res/font/my_custom_font.xml b/app/src/main/res/font/my_custom_font.xml
+index 7cb0f26..887a301 100644
+--- a/app/src/main/res/font/my_custom_font.xml
++++ b/app/src/main/res/font/my_custom_font.xml
+@@ -8,6 +8,5 @@
+         android:font="@style/CardView.Dark"
+         app:fontStyle="normal"
+         app:fontWeight="400"
+-
+         />
+ </font-family>
+\ No newline at end of file
+diff --git a/app/src/main/res/layout/activity_cart.xml b/app/src/main/res/layout/activity_cart.xml
+new file mode 100644
+index 0000000..76d0348
+--- /dev/null
++++ b/app/src/main/res/layout/activity_cart.xml
+@@ -0,0 +1,97 @@
++<?xml version="1.0" encoding="utf-8"?>
++<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++
++    android:layout_marginTop="@dimen/_100sdp"
++    tools:context=".CartActivity">
++
++
++    <RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
++        xmlns:tools="http://schemas.android.com/tools"
++        android:id="@+id/cartView"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:paddingTop="@dimen/_20sdp">
++
++
++        <TextView
++            android:id="@+id/itemName"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginLeft="@dimen/_10sdp"
++            android:text="Items" />
++
++
++        <TextView
++            android:id="@+id/itemQuantity"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginLeft="@dimen/_122sdp"
++            android:text="Quantity" />
++
++        <TextView
++            android:id="@+id/itemPrice"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginLeft="@dimen/_240sdp"
++            android:text="price" />
++
++        <androidx.recyclerview.widget.RecyclerView
++            android:id="@+id/cartList"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:layout_marginTop="@dimen/_20sdp" />
++
++        <View
++            android:id="@+id/divider"
++            android:layout_width="match_parent"
++            android:layout_height="2dp"
++            android:layout_below="@+id/cartList"
++            android:background="@android:color/darker_gray"
++            android:paddingTop="@dimen/_18sdp" />
++
++        <TextView
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_below="@+id/divider"
++            android:layout_marginLeft="@dimen/_13sdp"
++            android:layout_marginTop="@dimen/_18sdp"
++            android:text="TOTAL" />
++
++        <TextView
++            android:id="@+id/total"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_below="@+id/divider"
++            android:layout_marginLeft="@dimen/_250sdp"
++            android:layout_marginTop="@dimen/_18sdp"
++            android:text="total price" />
++
++        <Button
++            android:id="@+id/placeOrder"
++            style="@style/Widget.MaterialComponents.Button.Icon"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:layout_alignParentBottom="true"
++
++            android:text="Place Order" />
++
++    </RelativeLayout>
++
++    <TextView
++        android:id="@+id/emptyCart"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginLeft="@dimen/_80sdp"
++        android:layout_marginTop="@dimen/_144sdp"
++        android:layout_marginRight="@dimen/_20sdp"
++        android:text="Add Item To the Cart"
++        android:textSize="@dimen/_18sdp"
++        android:visibility="gone" />
++
++
++</androidx.cardview.widget.CardView>
+\ No newline at end of file
+diff --git a/app/src/main/res/layout/activity_foods.xml b/app/src/main/res/layout/activity_foods.xml
+index ae0c13b..9c3fa77 100644
+--- a/app/src/main/res/layout/activity_foods.xml
++++ b/app/src/main/res/layout/activity_foods.xml
+@@ -1,14 +1,24 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     tools:context=".FoodsActivity">
+ 
++
++    <!-- The ActionBar displayed at the top -->
++
++    <include
++        android:id="@+id/action_bar"
++        layout="@layout/design_bar"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content" />
++
+     <androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+         android:id="@+id/food_recycler_view"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
++        android:layout_below="@+id/action_bar"
++        android:layout_marginTop="10dp"
+         android:scrollbars="vertical" />
+-
+-</FrameLayout>
+\ No newline at end of file
++</RelativeLayout>
+\ No newline at end of file
+diff --git a/app/src/main/res/layout/activity_login.xml b/app/src/main/res/layout/activity_login.xml
+index ca1c3e9..8ffb6f7 100644
+--- a/app/src/main/res/layout/activity_login.xml
++++ b/app/src/main/res/layout/activity_login.xml
+@@ -7,8 +7,8 @@
+     tools:context=".LoginActivity">
+     <ImageView
+         android:id="@+id/app_logo"
+-        android:layout_width="@dimen/_130sdp"
+-        android:layout_height="@dimen/_130sdp"
++        android:layout_width="130dp"
++        android:layout_height="130dp"
+         android:src="@drawable/applogo"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -20,14 +20,14 @@
+         android:id="@+id/login_phone_input"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
++        android:layout_margin="10dp"
+         android:background="@drawable/input_design"
+         android:hint="Phone"
+         android:inputType="phone"
+-        android:padding="@dimen/_15sdp"
++        android:padding="15dp"
+         android:textColor="@color/colorPrimaryDark"
+         android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
++        android:textSize="13dp"
+         android:textStyle="bold"
+         android:visibility="visible"
+         app:layout_constraintBottom_toBottomOf="parent"
+@@ -41,7 +41,6 @@
+         android:id="@+id/login_restaurant_id_input"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-
+         android:layout_margin="@dimen/_10sdp"
+         android:background="@drawable/input_design"
+         android:hint="Restaurant Id"
+@@ -59,26 +58,28 @@
+         app:layout_constraintTop_toTopOf="parent"
+         app:layout_constraintVertical_bias="0.531" />
+ 
++
+     <EditText
+-        android:id="@+id/login_password_input"
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:layout_below="@+id/login_phone_input"
+-        android:layout_margin="@dimen/_10sdp"
+-        android:background="@drawable/input_design"
+-        android:hint="Password"
+-        android:inputType="textPassword"
+-        android:padding="@dimen/_15sdp"
+-        android:textColor="@color/colorPrimaryDark"
+-        android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
+-        android:textStyle="bold"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
+-        app:layout_constraintHorizontal_bias="0.52"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.647" />
++            android:id="@+id/login_password_input"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:layout_below="@+id/login_phone_input"
++            android:layout_margin="@dimen/_10sdp"
++            android:background="@drawable/input_design"
++            android:hint="Password"
++            android:inputType="textPassword"
++            android:padding="@dimen/_15sdp"
++            android:textColor="@color/colorPrimaryDark"
++            android:textColorHint="@color/colorPrimaryDark"
++            android:textSize="@dimen/_13sdp"
++            android:textStyle="bold"
++            app:layout_constraintBottom_toBottomOf="parent"
++            app:layout_constraintEnd_toEndOf="parent"
++            app:layout_constraintHorizontal_bias="0.52"
++            app:layout_constraintStart_toStartOf="parent"
++            app:layout_constraintTop_toTopOf="parent"
++            app:layout_constraintVertical_bias="0.647" />
++
+ 
+     <LinearLayout
+         android:id="@+id/linear1"
+@@ -101,14 +102,14 @@
+         android:id="@+id/login_btn"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_marginStart="@dimen/_10sdp"
+-        android:layout_marginEnd="@dimen/_10sdp"
++        android:layout_marginStart="10dp"
++        android:layout_marginEnd="10dp"
+         android:background="@drawable/buttons"
+         android:padding="17sp"
+         android:text="Log in"
+         android:textAllCaps="false"
+         android:textColor="@android:color/white"
+-        android:textSize="@dimen/_15sdp"
++        android:textSize="1dp"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintHorizontal_bias="1.0"
+@@ -116,12 +117,6 @@
+         app:layout_constraintTop_toBottomOf="@+id/linear1"
+         app:layout_constraintVertical_bias="0.14" />
+ 
+-    <!--        android:visibility="invisible"--><![CDATA[
+-        tools:layout_editor_absoluteX="224dp"
+-        tools:layout_editor_absoluteY="625dp" />
+-
+-    ]]>
+-
+     <TextView
+         android:id="@+id/admin_panel_linkLogin"
+         android:layout_width="wrap_content"
+@@ -130,7 +125,7 @@
+         android:layout_alignParentEnd="true"
+         android:text="I'm an admin?"
+         android:textColor="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
++        android:textSize="13sp"
+         android:textStyle="bold"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -147,7 +142,7 @@
+         android:layout_alignParentStart="true"
+         android:text="I'm not an admin?"
+         android:textColor="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
++        android:textSize="13sp"
+         android:textStyle="bold"
+         android:visibility="invisible"
+         app:layout_constraintBottom_toBottomOf="parent"
+diff --git a/app/src/main/res/layout/activity_main.xml b/app/src/main/res/layout/activity_main.xml
+index 95d1bce..1d92b01 100644
+--- a/app/src/main/res/layout/activity_main.xml
++++ b/app/src/main/res/layout/activity_main.xml
+@@ -1,7 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ 
+-
+-
+ <androidx.drawerlayout.widget.DrawerLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+@@ -20,7 +18,7 @@
+ 
+         <!-- The ActionBar displayed at the top -->
+         <include
+-            layout="@layout/toolbar"
++            layout="@layout/design_bar"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content" />
+ 
+@@ -30,7 +28,10 @@
+             android:id="@+id/flContent"
+             app:layout_behavior="@string/appbar_scrolling_view_behavior"
+             android:layout_width="match_parent"
+-            android:layout_height="match_parent"></FrameLayout>
++            android:layout_height="match_parent">
++
++
++        </FrameLayout>
+ 
+ 
+     </LinearLayout>
+@@ -42,17 +43,11 @@
+         android:layout_width="wrap_content"
+         android:layout_height="match_parent"
+         android:layout_gravity="start"
++        android:layout_marginTop="@dimen/_23sdp"
+         app:headerLayout="@layout/nav_header"
+         android:background="@android:color/white"
+         app:menu="@menu/main_menu"
+         />
+ 
+-    <ProgressBar
+-        android:id="@+id/progressBar2"
+-        style="?android:attr/progressBarStyleLarge"
+-        android:layout_width="10sp"
+-        android:layout_height="50sp"
+-        android:layout_marginTop="20sp"
+ 
+-        />
+ </androidx.drawerlayout.widget.DrawerLayout>
+diff --git a/app/src/main/res/layout/activity_orders.xml b/app/src/main/res/layout/activity_orders.xml
+new file mode 100644
+index 0000000..7438709
+--- /dev/null
++++ b/app/src/main/res/layout/activity_orders.xml
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="utf-8"?>
++<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    tools:context=".OrdersActivity">
++
++</androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
+diff --git a/app/src/main/res/layout/activity_register.xml b/app/src/main/res/layout/activity_register.xml
+index c3ec7df..27e3221 100644
+--- a/app/src/main/res/layout/activity_register.xml
++++ b/app/src/main/res/layout/activity_register.xml
+@@ -24,13 +24,13 @@
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:background="@drawable/input_design"
+-        android:layout_margin="@dimen/_10sdp"
++        android:layout_margin="10dp"
+         android:hint="Name"
+         android:inputType="text"
+-        android:padding="@dimen/_13sdp"
++        android:padding="13dp"
+         android:textColor="@color/colorPrimaryDark"
+         android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_11sdp"
++        android:textSize="11dp"
+         android:textStyle="bold"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -43,14 +43,14 @@
+         android:id="@+id/register_email_input"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
++        android:layout_margin="10dp"
+         android:background="@drawable/input_design"
+         android:hint="E-Mail"
+         android:inputType="textEmailAddress"
+-        android:padding="@dimen/_13sdp"
++        android:padding="13dp"
+         android:textColor="@color/colorPrimaryDark"
+         android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_11sdp"
++        android:textSize="11dp"
+         android:textStyle="bold"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -63,14 +63,14 @@
+         android:id="@+id/register_restaurantId_input"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
++        android:layout_margin="10dp"
+         android:background="@drawable/input_design"
+         android:hint="Restaurant id"
+         android:inputType="textEmailAddress"
+-        android:padding="@dimen/_13sdp"
++        android:padding="13dp"
+         android:textColor="@color/colorPrimaryDark"
+         android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_11sdp"
++        android:textSize="11dp"
+         android:textStyle="bold"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -85,14 +85,14 @@
+         android:id="@+id/register_address_input"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
++        android:layout_margin="10dp"
+         android:background="@drawable/input_design"
+         android:hint="Address"
+         android:inputType="textPostalAddress"
+-        android:padding="@dimen/_13sdp"
++        android:padding="13dp"
+         android:textColor="@color/colorPrimaryDark"
+         android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_11sdp"
++        android:textSize="11dp"
+         android:textStyle="bold"
+ 
+         app:layout_constraintBottom_toBottomOf="parent"
+@@ -106,14 +106,14 @@
+         android:id="@+id/register_password_input"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
++        android:layout_margin="10dp"
+         android:background="@drawable/input_design"
+         android:hint="Password"
+         android:inputType="textPassword"
+-        android:padding="@dimen/_13sdp"
++        android:padding="13dp"
+         android:textColor="@color/colorPrimaryDark"
+         android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_11sdp"
++        android:textSize="11dp"
+         android:textStyle="bold"
+ 
+         app:layout_constraintBottom_toBottomOf="parent"
+@@ -130,12 +130,12 @@
+         android:background="@drawable/input_design"
+         android:hint="Phone Number"
+         android:inputType="phone"
+-        android:padding="@dimen/_13sdp"
++        android:layout_margin="10dp"
+         android:textColor="@color/colorPrimaryDark"
+         android:textColorHint="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_11sdp"
++        android:padding="13dp"
+         android:textStyle="bold"
+-        android:layout_margin="@dimen/_10sdp"
++        android:textSize="11dp"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintHorizontal_bias="0.0"
+@@ -147,15 +147,15 @@
+         android:id="@+id/register_btn"
+         android:layout_width="match_parent"
+         android:layout_height="56dp"
+-        android:layout_marginStart="@dimen/_10sdp"
+-        android:layout_marginEnd="@dimen/_10sdp"
++        android:layout_margin="10dp"
++        android:layout_marginStart="10dp"
+         android:background="@drawable/buttons"
+-        android:padding="@dimen/_10sdp"
++        android:layout_marginEnd="10dp"
+         android:text="Create  an Account"
+-        android:layout_margin="@dimen/_10sdp"
++        android:padding="10dp"
+         android:textAllCaps="false"
+         android:textColor="@android:color/white"
+-        android:textSize="@dimen/_15sdp"
++        android:textSize="15dp"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintHorizontal_bias="0.541"
+@@ -170,7 +170,7 @@
+         android:layout_alignParentEnd="true"
+         android:text="I'm an admin?"
+         android:textColor="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
++        android:textSize="13dp"
+         android:textStyle="bold"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -186,7 +186,7 @@
+         android:layout_alignParentStart="true"
+         android:text="I'm not an admin?"
+         android:textColor="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
++        android:textSize="13dp"
+         android:textStyle="bold"
+         android:visibility="invisible"
+         app:layout_constraintBottom_toBottomOf="parent"
+diff --git a/app/src/main/res/layout/activity_restaurant_food_add.xml b/app/src/main/res/layout/activity_restaurant_food_add.xml
+index ab1d6b3..722adcf 100644
+--- a/app/src/main/res/layout/activity_restaurant_food_add.xml
++++ b/app/src/main/res/layout/activity_restaurant_food_add.xml
+@@ -1,122 +1,49 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
++<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+-    xmlns:tools="http://schemas.android.com/tools"
++    android:id="@+id/rest_drawer_layout"
+     android:layout_width="match_parent"
+-    android:layout_height="match_parent"
+-    tools:context=".RestaurantFoodAdd">
++    android:layout_height="match_parent">
+ 
+-    <ImageView
+-        android:id="@+id/restaurantProfile"
+-        android:layout_width="163dp"
+-        android:layout_height="146dp"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.0"
+-        android:src="@drawable/common_google_signin_btn_icon_light_normal"/>
+ 
+-    <TextView
+-        android:id="@+id/restaurantName"
++    <!-- This LinearLayout represents the contents of the screen  -->
++    <LinearLayout
+         android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:fontFamily="@font/my_custom_font"
+-        android:text="Hi Restaurant Name"
+-        android:textColor="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
+-        android:textStyle="bold"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
+-        app:layout_constraintHorizontal_bias="0.0"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.207"
+-        android:textAlignment="center"/>
++        android:layout_height="match_parent"
++        android:orientation="vertical">
+ 
+-    <TextView
+-        android:id="@+id/restaurantInfo"
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
+-        android:fontFamily="@font/my_custom_font"
+-        android:text="Restaurant Info Here"
+-        android:textColor="@color/colorPrimaryDark"
+-        android:textSize="@dimen/_13sdp"
+-        android:textStyle="bold"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
+-        app:layout_constraintHorizontal_bias="1.0"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.249" />
+ 
+-    <EditText
+-        android:id="@+id/foodName"
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
+-        android:autoSizeTextType="uniform"
+-        android:background="@drawable/input_design"
+-        android:hint="Food Name"
+-        android:inputType="textNoSuggestions"
+-        android:padding="@dimen/_10sdp"
+-        android:textSize="@dimen/_13sdp"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
+-        app:layout_constraintHorizontal_bias="0.52"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.399" />
++        <!-- The ActionBar displayed at the top -->
++        <include
++            layout="@layout/design_bar"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content" />
+ 
+-    <EditText
+-        android:id="@+id/foodPrice"
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_10sdp"
+-        android:autoSizeTextType="uniform"
+-        android:background="@drawable/input_design"
+-        android:hint="Food Price"
+-        android:inputType="textNoSuggestions"
+-        android:padding="@dimen/_10sdp"
+-        android:textSize="@dimen/_13sdp"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
+-        app:layout_constraintHorizontal_bias="0.52"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.499" />
+ 
+-    <Button
+-        android:id="@+id/addFood"
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:layout_margin="@dimen/_22sdp"
+-        android:background="@drawable/input_design"
+-        android:backgroundTint="@color/colorPrimaryDark"
+-        android:text="Add To Food List"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
++        <!-- The main content view where fragments are loaded -->
++        <FrameLayout
++            android:id="@+id/restaurantLayout"
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"
++            app:layout_behavior="@string/appbar_scrolling_view_behavior">
++
+ 
+-        app:layout_constraintHorizontal_bias="0.0"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.691" />
+-    <ProgressBar
+-        android:id="@+id/progressBarAddFood"
+-        style="?android:attr/progressBarStyleLarge"
++        </FrameLayout>
++
++
++    </LinearLayout>
++
++    <!-- The navigation drawer that comes from the left -->
++    <!-- Note that `android:layout_gravity` needs to be set to 'start' -->
++    <com.google.android.material.navigation.NavigationView
++        android:id="@+id/navView"
+         android:layout_width="wrap_content"
+-        android:layout_height="wrap_content"
+-        android:layout_centerInParent="true"
+-        android:layout_centerHorizontal="true"
+-        app:layout_constraintBottom_toBottomOf="parent"
+-        app:layout_constraintEnd_toEndOf="parent"
+-        app:layout_constraintHorizontal_bias="0.447"
+-        app:layout_constraintStart_toStartOf="parent"
+-        app:layout_constraintTop_toTopOf="parent"
+-        app:layout_constraintVertical_bias="0.352"
++        android:layout_height="match_parent"
++        android:layout_gravity="start"
++        android:layout_marginTop="@dimen/_23sdp"
++        android:background="@android:color/white"
++        app:headerLayout="@layout/nav_header"
++        app:menu="@menu/restaurant_menu"
+         />
+ 
+ 
+-
+-</androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
++</androidx.drawerlayout.widget.DrawerLayout>
+diff --git a/app/src/main/res/layout/activity_welcome_actvity.xml b/app/src/main/res/layout/activity_welcome_actvity.xml
+index 117e2c5..9ceecdf 100644
+--- a/app/src/main/res/layout/activity_welcome_actvity.xml
++++ b/app/src/main/res/layout/activity_welcome_actvity.xml
+@@ -47,7 +47,7 @@
+         android:layout_alignParentBottom="true"
+         android:background="@drawable/input_design"
+         android:padding="@dimen/_15sdp"
+-        android:text="Already have an Account? Log in"
++        android:text="Already have an Account?Log in"
+         android:textAllCaps="false"
+         android:textColor="@android:color/white"
+         android:textSize="@dimen/_14sdp"
+diff --git a/app/src/main/res/layout/cart_list.xml b/app/src/main/res/layout/cart_list.xml
+new file mode 100644
+index 0000000..e7703ef
+--- /dev/null
++++ b/app/src/main/res/layout/cart_list.xml
+@@ -0,0 +1,54 @@
++<?xml version="1.0" encoding="utf-8"?>
++
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:paddingTop="@dimen/_20sdp">
++
++
++    <TextView
++        android:id="@+id/itemName"
++        android:layout_width="@dimen/_50sdp"
++        android:layout_height="wrap_content"
++        android:layout_marginLeft="@dimen/_10sdp"
++        android:text="Items"
++        />
++
++    <LinearLayout
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginLeft="@dimen/_117sdp"
++        android:background="@drawable/layout_bg">
++
++        <ImageView
++            android:id="@+id/addItem"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:src="@drawable/twotone_add_circle_outline_24" />
++
++        <ImageView
++            android:id="@+id/removeItem"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginLeft="@dimen/_20sdp"
++            android:src="@drawable/twotone_remove_circle_outline_24" />
++
++        <TextView
++            android:id="@+id/itemQuantity"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginLeft="@dimen/_minus35sdp"
++            android:text="Quantity" />
++    </LinearLayout>
++    <TextView
++        android:id="@+id/itemPrice"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginLeft="@dimen/_245sdp"
++        android:text="price" />
++
++
++</RelativeLayout>
++
++
+diff --git a/app/src/main/res/layout/design_bar.xml b/app/src/main/res/layout/design_bar.xml
+new file mode 100644
+index 0000000..ef59fed
+--- /dev/null
++++ b/app/src/main/res/layout/design_bar.xml
+@@ -0,0 +1,45 @@
++<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:fitsSystemWindows="true">
++
++    <com.google.android.material.appbar.AppBarLayout
++
++        android:layout_width="match_parent"
++        android:layout_height="152dp"
++        android:fitsSystemWindows="true">
++
++        <com.google.android.material.appbar.CollapsingToolbarLayout
++            android:id="@+id/collapsing_toolbar"
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"
++            android:fitsSystemWindows="true"
++            app:contentScrim="?attr/colorPrimary"
++            app:expandedTitleMarginEnd="64dp"
++            app:expandedTitleMarginStart="48dp"
++            app:layout_scrollFlags="scroll|exitUntilCollapsed">
++
++            <ImageView
++                android:layout_width="match_parent"
++                android:layout_height="match_parent"
++                android:fitsSystemWindows="true"
++                android:scaleType="centerCrop"
++                android:src="@drawable/back_g"
++                app:layout_collapseMode="parallax" />
++
++            <androidx.appcompat.widget.Toolbar
++                android:id="@+id/toolbar"
++                android:layout_width="match_parent"
++                android:layout_height="?attr/actionBarSize"
++                app:layout_collapseMode="pin"
++                app:layout_scrollFlags="scroll|enterAlways|snap"
++                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
++                app:title="Restaurants" />
++
++        </com.google.android.material.appbar.CollapsingToolbarLayout>
++
++    </com.google.android.material.appbar.AppBarLayout>
++
++</androidx.coordinatorlayout.widget.CoordinatorLayout>
+diff --git a/app/src/main/res/layout/foods_view.xml b/app/src/main/res/layout/foods_view.xml
+index c4474f8..c83bac5 100644
+--- a/app/src/main/res/layout/foods_view.xml
++++ b/app/src/main/res/layout/foods_view.xml
+@@ -2,7 +2,9 @@
+ <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+-    android:orientation="vertical">
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++
++    android:id="@+id/food_card">
+ 
+ 
+     <RelativeLayout
+@@ -34,6 +36,74 @@
+             android:text="price" />
+ 
+ 
++        <LinearLayout
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:id="@+id/itemButton"
++            android:layout_margin="10dp"
++            android:layout_alignParentEnd="true"
++            android:layout_marginLeft="@dimen/_117sdp"
++            android:background="@drawable/layout_bg"
++            android:visibility="gone"
++
++            >
++
++            <ImageView
++                android:id="@+id/addItem"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:src="@drawable/twotone_add_circle_outline_24" />
++
++            <ImageView
++                android:id="@+id/removeItem"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:layout_marginLeft="@dimen/_20sdp"
++                android:src="@drawable/twotone_remove_circle_outline_24" />
++
++            <TextView
++                android:id="@+id/itemQuantity"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:layout_marginLeft="@dimen/_minus35sdp"
++                android:text="Quantity" />
++        </LinearLayout>
++
++        <LinearLayout
++            android:id="@+id/addToCart"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_alignParentEnd="true"
++            android:layout_margin="10dp"
++            android:layout_marginLeft="@dimen/_117sdp"
++            android:animateLayoutChanges="true"
++            android:background="@drawable/layout_bg">
++
++            <ImageView
++
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:src="@drawable/twotone_add_circle_outline_24" />
++
++
++            <TextView
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:layout_marginRight="7dp"
++                android:text="AddItem" />
++        </LinearLayout>
++
++        <View
++            android:id="@+id/divider"
++            android:layout_width="300dp"
++            android:layout_height="2dp"
++            android:layout_below="@+id/cartList"
++            android:layout_centerHorizontal="true"
++            android:background="@android:color/darker_gray"
++            android:layout_alignParentBottom="true"
++            android:paddingTop="@dimen/_18sdp" />
++
++
+     </RelativeLayout>
+ 
+ </androidx.cardview.widget.CardView>
+\ No newline at end of file
+diff --git a/app/src/main/res/layout/fragment_home.xml b/app/src/main/res/layout/fragment_home.xml
+index 25491b1..efe4ec7 100644
+--- a/app/src/main/res/layout/fragment_home.xml
++++ b/app/src/main/res/layout/fragment_home.xml
+@@ -2,9 +2,17 @@
+ <RelativeLayout android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:background="#00ffff">
++    xmlns:app="http://schemas.android.com/apk/res-auto"
+ 
++    android:background="#ffffff">
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    android:background="#fffff0">
+ 
++    <!-- <include
++         layout="@layout/design_bar"
++         android:layout_width="match_parent"
++         android:layout_height="wrap_content" />
++ -->
+     <ProgressBar
+         android:id="@+id/loader"
+         style="?android:attr/progressBarStyleLarge"
+@@ -14,8 +22,9 @@
+         android:layout_centerVertical="true" />
+ 
+     <androidx.recyclerview.widget.RecyclerView android:id="@+id/my_recycler_view"
+-        android:scrollbars="vertical"
+-        android:layout_height="wrap_content"
+-        android:layout_width="wrap_content"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+         xmlns:android="http://schemas.android.com/apk/res/android" />
++
+ </RelativeLayout>
+\ No newline at end of file
+diff --git a/app/src/main/res/layout/fragment_resturant_home.xml b/app/src/main/res/layout/fragment_resturant_home.xml
+new file mode 100644
+index 0000000..5dc4729
+--- /dev/null
++++ b/app/src/main/res/layout/fragment_resturant_home.xml
+@@ -0,0 +1,118 @@
++<?xml version="1.0" encoding="utf-8"?>
++<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    tools:context=".ResturantHome">
++
++
++    <ImageView
++        android:id="@+id/restaurantProfile"
++        android:layout_width="163dp"
++        android:layout_height="146dp"
++        android:src="@drawable/common_google_signin_btn_icon_light_normal"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintVertical_bias="0.0" />
++
++    <TextView
++        android:id="@+id/restaurantName"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:fontFamily="@font/my_custom_font"
++        android:text="Hi Restaurant Name"
++        android:textAlignment="center"
++        android:textColor="@color/colorPrimaryDark"
++        android:textSize="@dimen/_13sdp"
++        android:textStyle="bold"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintHorizontal_bias="0.0"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintVertical_bias="0.207" />
++
++    <TextView
++        android:id="@+id/restaurantInfo"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_margin="@dimen/_10sdp"
++        android:fontFamily="@font/my_custom_font"
++        android:text="Restaurant Info Here"
++        android:textColor="@color/colorPrimaryDark"
++        android:textSize="@dimen/_13sdp"
++        android:textStyle="bold"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintHorizontal_bias="1.0"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintVertical_bias="0.249" />
++
++    <EditText
++        android:id="@+id/foodName"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_margin="@dimen/_10sdp"
++        android:autoSizeTextType="uniform"
++        android:background="@drawable/input_design"
++        android:hint="Food Name"
++        android:inputType="textNoSuggestions"
++        android:padding="@dimen/_10sdp"
++        android:textSize="@dimen/_13sdp"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintHorizontal_bias="0.64"
++
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintVertical_bias="0.527" />
++    app:layout_constraintVertical_bias="0.399" />
++
++    <EditText
++        android:id="@+id/foodPrice"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_margin="@dimen/_10sdp"
++        android:autoSizeTextType="uniform"
++        android:background="@drawable/input_design"
++        android:hint="Food Price"
++        android:inputType="textNoSuggestions"
++        android:padding="@dimen/_10sdp"
++        android:textSize="@dimen/_13sdp"
++        app:layout_constraintBottom_toBottomOf="parent"
++
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintHorizontal_bias="0.64"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintVertical_bias="0.431" />
++    app:layout_constraintVertical_bias="0.499" />
++
++    <Button
++        android:id="@+id/addFood"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintVertical_bias="0.691" />
++
++    <ProgressBar
++        android:id="@+id/progressBarAddFood"
++        style="?android:attr/progressBarStyleLarge"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_centerInParent="true"
++        android:layout_centerHorizontal="true"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintHorizontal_bias="0.447"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:layout_constraintVertical_bias="0.352" />
++
++
++</FrameLayout>
+\ No newline at end of file
+diff --git a/app/src/main/res/layout/nav_header.xml b/app/src/main/res/layout/nav_header.xml
+index 5dfe093..f564142 100644
+--- a/app/src/main/res/layout/nav_header.xml
++++ b/app/src/main/res/layout/nav_header.xml
+@@ -2,7 +2,7 @@
+ <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+     android:layout_height="130dp"
+-    android:background="@color/colorPrimaryDark"
++    android:background="@color/colorPrimary"
+     android:gravity="bottom"
+     android:orientation="vertical"
+     android:padding="10dp"
+@@ -11,12 +11,8 @@
+     <ImageView
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:id="@+id/imageView"
+-        android:src= "@drawable/logo_design"
+-        android:layout_alignParentStart="true"
+-        android:layout_alignParentLeft="true"
+-        android:layout_marginBottom="50dp"
+-        />
++        android:layout_centerInParent="true"
++        android:src="@drawable/applogo" />
+ 
+     <TextView
+         android:id="@+id/userName"
+@@ -25,7 +21,7 @@
+         android:layout_centerHorizontal="true"
+         android:layout_marginTop="80dp"
+         android:text="UserName"
+-        android:textColor="@color/actionbar_background"
++        android:textColor="#ffffD0"
+         android:textSize="20sp"
+         android:textStyle="bold" />
+ 
+diff --git a/app/src/main/res/layout/restaurant_view.xml b/app/src/main/res/layout/restaurant_view.xml
+index bbccef7..c2d0283 100644
+--- a/app/src/main/res/layout/restaurant_view.xml
++++ b/app/src/main/res/layout/restaurant_view.xml
+@@ -4,15 +4,12 @@
+     android:layout_height="120dp"
+     android:id="@+id/restaurant"
+     android:layout_centerHorizontal="true"
+-    android:layout_margin="15dp"
+-    android:background="@color/actionbar_background">
++    android:theme="@style/Card.Theme"
++
++    >
+     <RelativeLayout
+         android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:background="@drawable/cardview_body"
+-
+-
+-        >
++        android:layout_height="wrap_content">
+ 
+         <com.makeramen.roundedimageview.RoundedImageView xmlns:app="http://schemas.android.com/apk/res-auto"
+             android:id="@+id/item_image"
+@@ -50,16 +47,6 @@
+             android:layout_toRightOf="@id/item_image"
+             android:textStyle="italic"
+             />
+-
+-    <TextView
+-        android:layout_width="wrap_content"
+-        android:layout_height="wrap_content"
+-        android:textSize="15dp"
+-        android:id="@+id/rating"
+-        android:background="@drawable/rounded_corner"
+-        android:layout_alignParentEnd="true"
+-        android:textColor="@color/actionbar_background"
+-        android:text="5.0"/>
+     <TextView
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+@@ -70,5 +57,15 @@
+         android:layout_marginTop="27dp"
+         android:text="50-60 min"
+         />
++
++        <View
++            android:id="@+id/divider"
++            android:layout_width="300dp"
++            android:layout_height="2dp"
++            android:layout_below="@+id/cartList"
++            android:layout_alignParentBottom="true"
++            android:layout_centerHorizontal="true"
++            android:background="@android:color/darker_gray"
++            android:paddingTop="@dimen/_18sdp" />
+     </RelativeLayout>
+ </androidx.cardview.widget.CardView>
+diff --git a/app/src/main/res/layout/toolbar.xml b/app/src/main/res/layout/toolbar.xml
+index d2bd8ee..143ba71 100644
+--- a/app/src/main/res/layout/toolbar.xml
++++ b/app/src/main/res/layout/toolbar.xml
+@@ -1,11 +1,12 @@
+ <androidx.appcompat.widget.Toolbar
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+-    android:id="@+id/toolbar"
+     android:layout_height="wrap_content"
+     android:layout_width="match_parent"
+     android:fitsSystemWindows="true"
+     android:minHeight="?attr/actionBarSize"
+     app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+     android:background="?attr/colorPrimaryDark">
++
++
+ </androidx.appcompat.widget.Toolbar>
+\ No newline at end of file
+diff --git a/app/src/main/res/menu/main_activity_bar.xml b/app/src/main/res/menu/main_activity_bar.xml
+index 1b886b6..041f61c 100644
+--- a/app/src/main/res/menu/main_activity_bar.xml
++++ b/app/src/main/res/menu/main_activity_bar.xml
+@@ -1,10 +1,15 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <menu xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto">
++    <item
++        android:id="@+id/action_search"
++        android:icon="@drawable/ic_action_search"
++        android:title="@string/action_search"
++        app:actionViewClass="androidx.appcompat.widget.SearchView"
++        app:showAsAction="always" />
++
+     <item android:id="@+id/action_cart"
+         android:icon="@drawable/ic_action_cart"
+         android:title="@string/action_cart"
+         app:showAsAction="ifRoom|collapseActionView"/>
+-
+-
+ </menu>
+\ No newline at end of file
+diff --git a/app/src/main/res/menu/main_menu.xml b/app/src/main/res/menu/main_menu.xml
+index 3604ed6..58060d4 100644
+--- a/app/src/main/res/menu/main_menu.xml
++++ b/app/src/main/res/menu/main_menu.xml
+@@ -6,18 +6,24 @@
+ 
+     <group android:checkableBehavior="single">
+         <item android:id="@+id/home"
++            android:icon="@drawable/twotone_home_24"
+             android:title="Home"/>
+         <item
+             android:id="@+id/orders"
++            android:icon="@drawable/twotone_restaurant_menu_24"
+             android:title="Orders" />
+         <item
+             android:id="@+id/cart"
++            android:icon="@drawable/twotone_shopping_cart_24"
+             android:title="Cart"/>
+         <item
+             android:id="@+id/help"
++            android:icon="@drawable/twotone_help_24"
++
+             android:title="Help" />
+         <item
+             android:id="@+id/logout"
++            android:icon="@drawable/twotone_power_settings_new_24"
+             android:title="Logout" />
+     </group>
+ 
+diff --git a/app/src/main/res/menu/restaurant_menu.xml b/app/src/main/res/menu/restaurant_menu.xml
+new file mode 100644
+index 0000000..210a0a3
+--- /dev/null
++++ b/app/src/main/res/menu/restaurant_menu.xml
+@@ -0,0 +1,22 @@
++<?xml version="1.0" encoding="utf-8"?>
++<menu xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
++    tools:showIn="navigation_view">
++
++
++    <group android:checkableBehavior="single">
++        <item
++            android:id="@+id/rest_home"
++            android:title="Home" />
++        <item
++            android:id="@+id/all_food"
++
++            android:title="All Foods" />
++        <item
++            android:id="@+id/update_address"
++            android:title="updateAddress" />
++        <item
++            android:id="@+id/log_out"
++            android:title="Logout" />
++    </group>
++</menu>
+\ No newline at end of file
+diff --git a/app/src/main/res/values/colors.xml b/app/src/main/res/values/colors.xml
+index dcb9191..c7453e1 100644
+--- a/app/src/main/res/values/colors.xml
++++ b/app/src/main/res/values/colors.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <color name="colorPrimary">#a08577</color>
++    <color name="colorPrimary">#00bcf9</color>
+     <color name="colorPrimaryDark">#00bcd4</color>
+     <color name="colorAccent">#00bcd4</color>
+     <color name="cardBackground">#b2ebf2</color>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 5a5cbb6..5117d2c 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -14,4 +14,6 @@
+ 
+     <!-- TODO: Remove or change this placeholder text -->
+     <string name="hello_blank_fragment">Hello blank fragment</string>
++    <string name="action_search">search</string>
++    <string name="search_hint">Search Restaurants</string>
+ </resources>
+\ No newline at end of file
+diff --git a/app/src/main/res/values/styles.xml b/app/src/main/res/values/styles.xml
+index 64546b4..d159457 100644
+--- a/app/src/main/res/values/styles.xml
++++ b/app/src/main/res/values/styles.xml
+@@ -1,23 +1,33 @@
+ <resources>
+ 
+     <!-- Base application theme. -->
+-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
++    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+         <!-- Customize your theme here. -->
+         <item name="colorPrimary">@color/colorPrimary</item>
++        <item name="android:windowTranslucentStatus">true</item>
+         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+         <item name="colorAccent">@color/colorAccent</item>
++
++
+     </style>
++
+     <style name="AppTheme.NoActionBar">
+         <item name="windowActionBar">false</item>
+         <item name="windowNoTitle">true</item>
+         <item name="actionBarSize">67dp</item>
+-
+     </style>
+ 
+-
+     <style name="SplashTheme" parent="AppTheme">
+         <item name="android:windowBackground">@drawable/splash</item>
+     </style>
+ 
++    <style name="TextAppearance.App.CollapsingToolbar.Expanded" parent="TextAppearance.MaterialComponents.Headline5">
++        <item name="android:textColor">@color/colorPrimary</item>
++    </style>
++
++    <style name="TextAppearance.App.CollapsingToolbar.Collapsed" parent="TextAppearance.MaterialComponents.Headline6">
++        <item name="android:textColor">@color/colorPrimaryDark</item>
++    </style>
++
+ 
+ </resources>
+diff --git a/app/src/main/res/values/themes.xml b/app/src/main/res/values/themes.xml
+new file mode 100644
+index 0000000..7b63ef0
+--- /dev/null
++++ b/app/src/main/res/values/themes.xml
+@@ -0,0 +1,29 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++
++    <style name="AppTheme.Bar" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
++        <item name="windowActionBar">false</item>
++        <item name="windowNoTitle">true</item>
++        <item name="actionBarSize">70dp</item>
++        <item name="android:windowTranslucentStatus">true</item>
++
++    </style>
++
++
++    <style name="AlertDialogCustom" parent="Material.App.Dialog.Light">
++        <item name="android:textColor">#000000</item>
++
++        <item name="android:titleTextColor">#fbad21</item>
++        <item name="android:typeface">normal</item>
++        <item name="android:textSize">10sp</item>
++        <item name="android:layout_margin">5sp</item>
++    </style>
++
++    <style name="Card.Theme" parent="Widget.MaterialComponents.CardView">
++        <item name="cardBackgroundColor">#fff732</item>
++        <item name="cardElevation">@dimen/_10sdp</item>
++
++    </style>
++
++
++</resources>
+\ No newline at end of file
+diff --git a/app/src/main/res/xml/searchable.xml b/app/src/main/res/xml/searchable.xml
+new file mode 100644
+index 0000000..174b317
+--- /dev/null
++++ b/app/src/main/res/xml/searchable.xml
+@@ -0,0 +1,4 @@
++<?xml version="1.0" encoding="utf-8"?>
++<searchable xmlns:android="http://schemas.android.com/apk/res/android"
++    android:hint="@string/search_hint"
++    android:label="@string/app_name" />
+diff --git a/build.gradle b/build.gradle
+index dcaeef2..6025d92 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -7,8 +7,8 @@ buildscript {
+         
+     }
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:3.6.1'
+-        
++        classpath 'com.android.tools.build:gradle:3.5.3'
++
+         // NOTE: Do not place your application dependencies here; they belong
+         // in the individual module build.gradle files
+     }

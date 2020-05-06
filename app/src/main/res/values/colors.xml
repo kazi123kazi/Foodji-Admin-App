@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#00bcf9</color>
+    <color name="colorPrimaryDark">#00bcd4</color>
+    <color name="colorAccent">#00bcd4</color>
+    <color name="cardBackground">#b2ebf2</color>
+    <color name="DarkGrey">#A9A9A9</color>
+    <color name="actionbar_background">#ff5722</color>
+    <color name="actionbar_text">#ffffff</color>
+    <color name="background">#15acbf</color>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" tools:showIn="navigation_view">
+
+
+    <group android:checkableBehavior="single">
+
+        <item android:id="@+id/home"
+            android:icon="@drawable/twotone_home_24"
+            android:title="Home"/>
+        <item
+            android:id="@+id/orders"
+            android:icon="@drawable/twotone_restaurant_menu_24"
+            android:title="Orders" />
+        <item
+            android:id="@+id/cart"
+            android:icon="@drawable/twotone_shopping_cart_24"
+            android:title="Cart"/>
+        <item
+            android:id="@+id/help"
+            android:icon="@drawable/twotone_help_24"
+
+            android:title="Help" />
+        <item
+            android:id="@+id/logout"
+            android:icon="@drawable/twotone_power_settings_new_24"
+            android:title="Logout" />
+    </group>
+
+
+</menu>

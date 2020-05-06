@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:background="#ffffff">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#fffff0">
+
+    <!-- <include
+         layout="@layout/design_bar"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content" />
+ -->
+    <ProgressBar
+        android:id="@+id/loader"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
+
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/my_recycler_view"
+        android:layout_width="match_parent"
+        android:background="@drawable/custom_ripple"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        xmlns:android="http://schemas.android.com/apk/res/android" />
+
+</RelativeLayout>

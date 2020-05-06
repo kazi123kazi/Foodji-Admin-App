@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme.Bar" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="actionBarSize">70dp</item>
+        <item name="android:windowTranslucentStatus">true</item>
+
+    </style>
+
+
+    <style name="AlertDialogCustom" parent="Material.App.Dialog.Light">
+        <item name="android:textColor">#000000</item>
+
+        <item name="android:titleTextColor">#fbad21</item>
+        <item name="android:typeface">normal</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:layout_margin">5sp</item>
+    </style>
+
+    <style name="Card.Theme" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">#fff732</item>
+        <item name="cardElevation">@dimen/_10sdp</item>
+
+    </style>
+
+
+</resources>

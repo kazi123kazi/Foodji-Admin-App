@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/restaurantName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="Restaurant name"
+
+            android:textSize="30dp" />
+
+        <TextView
+            android:id="@+id/item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_below="@id/restaurantName"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="10dp"
+            android:text="ITEMS"
+            android:textStyle="italic" />
+
+        <ListView
+            android:id="@+id/itemList"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_below="@+id/item" />
+
+        <TextView
+            android:id="@+id/orderOn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/itemList"
+
+            android:layout_marginLeft="5dp"
+            android:text="Ordered On" />
+
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/orderOn"
+            android:layout_marginLeft="5dp"
+
+            android:layout_marginBottom="10dp"
+            android:text="Date" />
+
+        <TextView
+            android:id="@+id/total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/date"
+            android:layout_marginLeft="5dp"
+            android:text="TOTAL" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/total"
+            android:layout_marginLeft="3dp"
+            android:text="0.0" />
+
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

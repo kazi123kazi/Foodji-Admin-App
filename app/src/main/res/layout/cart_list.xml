@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/_10sdp"
+    android:foreground="@drawable/custom_ripple"
+    android:paddingTop="@dimen/_20sdp">
+
+
+    <TextView
+        android:id="@+id/itemName"
+        android:layout_width="@dimen/_50sdp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/_10sdp"
+        android:text="Items"
+        />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/_117sdp"
+        android:background="@drawable/layout_bg">
+
+        <ImageView
+            android:id="@+id/addItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/twotone_add_circle_outline_24" />
+
+        <ImageView
+            android:id="@+id/removeItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/_20sdp"
+            android:src="@drawable/twotone_remove_circle_outline_24" />
+
+        <TextView
+            android:id="@+id/itemQuantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/_minus35sdp"
+            android:text="Quantity" />
+    </LinearLayout>
+    <TextView
+        android:id="@+id/itemPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/_240sdp"
+        android:text="price" />
+
+    <ImageView
+        android:id="@+id/removeFromCart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/_280sdp"
+        android:layout_marginTop="@dimen/_minus4sdp"
+        android:src="@drawable/outline_delete_black_18dp" />
+
+</RelativeLayout>
+
+

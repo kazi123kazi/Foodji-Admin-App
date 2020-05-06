@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/restaurant"
+    android:layout_centerHorizontal="true"
+    android:theme="@style/Card.Theme"
+    android:background="@drawable/custom_ripple">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_ripple">
+
+        <com.github.florent37.shapeofview.shapes.DiagonalView
+            android:id="@+id/item_image"
+            android:layout_width="200dp"
+            android:layout_height="113dp"
+            app:shape_diagonal_angle="20"
+            app:shape_diagonal_direction="left"
+            app:shape_diagonal_position="bottom">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:src="@drawable/rest_icon" />
+
+        </com.github.florent37.shapeofview.shapes.DiagonalView>
+
+        <TextView
+            android:id="@+id/restaurantName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="12dp"
+            android:layout_toRightOf="@id/item_image"
+            android:text="lxz"
+            android:textColor="#000"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_below="@+id/restaurantName"
+            android:layout_marginStart="5dp"
+            android:layout_marginLeft="17dp"
+
+            android:layout_marginTop="23dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_toRightOf="@id/item_image"
+            android:text="description"
+            android:textStyle="italic"
+            android:visibility="gone" />
+
+        <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/eta"
+        android:layout_below="@id/restaurantName"
+        android:layout_toRightOf="@id/item_image"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="27dp"
+        android:text="50-60 min"
+            android:visibility="gone"
+        />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="300dp"
+            android:layout_height="2dp"
+            android:layout_below="@+id/cartList"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:background="@android:color/darker_gray"
+            android:paddingTop="@dimen/_18sdp" />
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
