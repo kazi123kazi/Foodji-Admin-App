@@ -67,13 +67,13 @@ public class LoginActivity extends AppCompatActivity {
                     Intent intent = new Intent(getBaseContext(),MainActivity.class);
                     startActivity(intent);
 //
-//                    ResponseRestaurant restaurantObj=response.body().getRestaurant();
-//
-//                    intent.putExtra("token", response.body().getToken());
-//                    intent.putExtra("name",restaurantObj.getName());
-//                    intent.putExtra("restId",restaurantObj.getRest_id());
-//                    intent.putExtra("address",restaurantObj.getAddress());
-//                    startActivity(intent);
+                    ResponseRestaurant restaurantObj=response.body().getRestaurant();
+
+                    intent.putExtra("token", response.body().getToken());
+                    intent.putExtra("name",restaurantObj.getName());
+                    intent.putExtra("restId",restaurantObj.getRest_id());
+                    intent.putExtra("address",restaurantObj.getAddress());
+                    startActivity(intent);
                     spinner.setVisibility(View.GONE);
                     WelcomeActvity.getInstance().finish();
                     finish();

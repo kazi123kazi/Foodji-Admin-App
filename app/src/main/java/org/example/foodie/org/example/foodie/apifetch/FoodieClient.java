@@ -3,6 +3,8 @@ package org.example.foodie.org.example.foodie.apifetch;
 
 import com.google.gson.JsonObject;
 
+import org.example.foodie.models.Food;
+import org.example.foodie.models.Foodid;
 import org.example.foodie.models.Order;
 import org.example.foodie.models.ResponseUser;
 import org.example.foodie.models.Restaurant;
@@ -34,9 +36,7 @@ public interface FoodieClient {
     @POST("user/login")
     Call<ResponseUser> Login(@Body User user);
 
-    //Logout user endpoint
-    @POST("user/logout")
-    Call<Void> Logout(@Header("Authorization") String token);
+
 
     //get all user info
     @GET("user/me")
@@ -54,12 +54,16 @@ public interface FoodieClient {
 
     @GET("restaurant/{id}")
     Call<Restaurant> getFood(@Path("id") String id);
-
-
-    //Restaturant create
+    //post food to restaurant
+    @POST("food")
+    Call<Foodid> postFood(@Header("Authorization") String token, @Body Food food);
+    //create restaurant
     @POST("restaurant")
     Call<ResponseUser> createRestaurant(@Body RestaurantCreate restaurantCreate);
-
+    //log in user
     @POST("restaurant/login")
     Call<ResponseRestaurantUser> logInRestaurant(@Body RestaurantUser restaurantUser);
+    //Logout restaurant
+    @POST("restaurant/logout")
+    Call<Void> Logout(@Header("Authorization") String token);
 }

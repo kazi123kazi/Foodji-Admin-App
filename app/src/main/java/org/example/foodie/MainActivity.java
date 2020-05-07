@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView nvDrawer;
     private ProgressBar progressBar;
     //DrawerLayout drawer;
+    private String token;
     //NavigationView navigationView;
     FrameLayout frameLayout;
     ActionBarDrawerToggle toggle;
@@ -62,15 +63,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+//
 //        progressBar = findViewById(R.id.progressBar2);
+//
+//              progressBar.setVisibility(View.GONE);
+//
+        Intent i = getIntent();
+        token = i.getStringExtra("token");
+        user = i.getStringExtra("name");
 
-        //      progressBar.setVisibility(View.GONE);
-//
-//        Intent i = getIntent();
-//
-//        String token = i.getStringExtra("token");
-//        user = i.getStringExtra("name");
 
 //        if (user == null) {
 //            SharedPreferences sharedPreferences = getSharedPreferences("org.example.foodie", Context.MODE_PRIVATE);
@@ -81,11 +82,11 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //
 //
-//        if (token != null) {
-//            Log.i("TOKEN", token);
-//            if (WelcomeActvity.getInstance() != null)
-//                WelcomeActvity.getInstance().finish();
-//        }
+        if (token != null) {
+           // Log.d("TOKEN", token);
+            if (WelcomeActvity.getInstance() != null)
+                WelcomeActvity.getInstance().finish();
+        }
 
 
         // Set a Toolbar to replace the ActionBar.
@@ -102,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         View headerView = nvDrawer.getHeaderView(0);
-      //  TextView userName = headerView.findViewById(R.id.userName);
-   //     userName.setText("USER: " + String.valueOf(user));
+        TextView userName = headerView.findViewById(R.id.userName);
+        userName.setText("USER: " + String.valueOf(user));
 
 
         // Setup drawer view
@@ -181,9 +182,9 @@ public class MainActivity extends AppCompatActivity {
                 fragmentClass = Home.class;
                 break;
 
-//            case R.id.logout:
-//                LogoutUser();
-//                return;
+            case R.id.logout:
+                LogoutUser();
+                return;
 
 
 
@@ -257,37 +258,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void LogoutUser() {
-
         FoodieClient foodieClient = ServiceGenerator.createService(FoodieClient.class);
-
-
-        Call<Void> call = foodieClient.Logout(WelcomeActvity.token);
+        Call<Void> call = foodieClient.Logout(token);
         //   progressBar.setVisibility(View.VISIBLE);
-
-
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-
-
-                // Log.i("Response", String.valueOf(response.body().getToken()));
                 if (response.code() == 200) {
                     Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
-
-                    WelcomeActvity.token = null;
                     Intent intent = new Intent(MainActivity.this, WelcomeActvity.class);
-                    // progressBar.setVisibility(View.GONE);
-
-
                     startActivity(intent);
-
                     finish();
-                    deleteToken();
-                } else {
-                    //  progressBar.setVisibility(View.GONE);
 
-                    Log.i("Response", response.raw().toString());
-                    Toast.makeText(getApplicationContext(), response.raw().toString(), Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -301,29 +283,5 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
-
-    //delete Token on logging out
-    public void deleteToken() {
-        SharedPreferences sharedPreferences = getSharedPreferences("org.example.foodie", Context.MODE_PRIVATE);
-
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        CartActivity.cartItems.clear();
-        FoodsActivity.rest_id = null;
-        editor.clear();
-        editor.apply();
-
-        editor.commit();
-    }
-
-
-//    @Override
-//    public void OnRestaurantSelected(Restaurant restaurant) {
-//        Toast.makeText(getApplicationContext(), "Selected " + restaurant.getName(), Toast.LENGTH_SHORT);
-//
-//    }
-//
-
 
 }

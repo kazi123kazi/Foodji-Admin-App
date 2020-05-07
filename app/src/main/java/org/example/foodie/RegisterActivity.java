@@ -94,11 +94,12 @@ public class RegisterActivity extends AppCompatActivity {
                if (response.code() == 201) {
                    Toast.makeText(getApplicationContext() , "Success!" , Toast.LENGTH_SHORT).show();
                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+
+                   intent.putExtra("token", response.body().getToken());//for further functionality need this token id
+                   intent.putExtra("name",InputName.getText().toString());
+                   intent.putExtra("restId",RestaurantIdInput.getText().toString());
+                   intent.putExtra("address",InputAddress.getText().toString());
                    startActivity(intent);
-//                   intent.putExtra("token", response.body().getToken());//for further functionality need this token id
-//                   intent.putExtra("name",InputName.getText().toString());
-//                   intent.putExtra("restId",RestaurantIdInput.getText().toString());
-//                   intent.putExtra("address",InputAddress.getText().toString());
                    progressBar.setVisibility(View.GONE);
                    WelcomeActvity.getInstance().finish();
                    finish();
