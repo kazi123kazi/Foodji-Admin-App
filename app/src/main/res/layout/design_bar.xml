@@ -36,7 +36,7 @@
                 app:layout_collapseMode="pin"
                 app:layout_scrollFlags="scroll|enterAlways|snap"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                app:title="Restaurants" />
+                app:title="Restaurant Admin" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 

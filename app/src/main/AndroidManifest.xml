@@ -23,10 +23,6 @@
             </intent-filter>
 
         </activity>
-        <activity android:name=".OrdersActivity" />
-        <activity
-            android:name=".RestaurantFoodAdd"
-            android:theme="@style/AppTheme.NoActionBar" />
         <!--
 <<<<<<< HEAD
 
@@ -49,15 +45,11 @@
 =======
         -->
         <activity
-            android:name=".FoodsActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
             android:name=".RegisterActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".LoginActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".CartActivity" />
         <activity
             android:name=".WelcomeActvity"
             android:theme="@style/AppTheme.NoActionBar">
