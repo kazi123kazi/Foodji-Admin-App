@@ -10,11 +10,11 @@
             android:icon="@drawable/twotone_home_24"
             android:title="Home"/>
         <item
-            android:id="@+id/orders"
+            android:id="@+id/allFoods"
             android:icon="@drawable/twotone_restaurant_menu_24"
             android:title="All Foods" />
         <item
-            android:id="@+id/cart"
+            android:id="@+id/update"
             android:icon="@drawable/baseline_update_black_18dp"
             android:title="Update Info"/>
         <item

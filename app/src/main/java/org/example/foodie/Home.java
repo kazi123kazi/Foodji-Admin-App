@@ -1,6 +1,9 @@
 package org.example.foodie;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Notification;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -15,6 +18,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import org.example.foodie.models.Food;
@@ -28,6 +33,7 @@ import retrofit2.Response;
 
 
 public class Home extends Fragment {
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private TextView restaurantName, restaurantInfo;
     private ImageView restaurantImage;
     private EditText foodName,foodprice;
@@ -103,5 +109,7 @@ public class Home extends Fragment {
         //you can set the title for your toolbar here for different fragments different titles
         getActivity().setTitle("FOODJI ADMIN");
     }
+
+
 
 }

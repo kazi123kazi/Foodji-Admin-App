@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 //
 //
         if (token != null) {
-           // Log.d("TOKEN", token);
+            Log.d("TOKEN", token);
             if (WelcomeActvity.getInstance() != null)
                 WelcomeActvity.getInstance().finish();
         }
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         loadFragment(new Home());
 
 
-// We can now look up items within the header if needed
+         // We can now look up items within the header if needed
 
         // ImageView ivHeaderPhoto = headerLayout.findViewById(R.id.imageView);
 
@@ -148,6 +148,14 @@ public class MainActivity extends AppCompatActivity {
             case android.R.id.home:
                 mDrawer.openDrawer(GravityCompat.START);
                 return true;
+            case R.id.update:
+                Intent intent = new Intent(MainActivity.this, Update.class);
+                //getSupportFragmentManager().popBackStackImmediate("frag_back",0);
+                this.startActivity(intent);
+
+
+
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -181,6 +189,11 @@ public class MainActivity extends AppCompatActivity {
                 id = true;
                 fragmentClass = Home.class;
                 break;
+            case R.id.update:
+                Intent intent = new Intent(MainActivity.this, Update.class);
+                //getSupportFragmentManager().popBackStackImmediate("frag_back",0);
+                this.startActivity(intent);
+                return;
 
             case R.id.logout:
                 LogoutUser();
