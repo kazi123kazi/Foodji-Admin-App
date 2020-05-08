@@ -28,5 +28,15 @@
         android:text="Select Image From gallery"
         android:textStyle="bold" />
 
+    <ProgressBar
+        android:id="@+id/progress_update"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+      android:layout_marginLeft="@dimen/_122sdp"
+        android:layout_marginTop="@dimen/_minus60sdp"
+         />
+
+
 
 </LinearLayout>

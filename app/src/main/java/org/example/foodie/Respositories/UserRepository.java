@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import org.example.foodie.Home;
 import org.example.foodie.WelcomeActvity;
 import org.example.foodie.models.ResponseUser;
 import org.example.foodie.models.Restaurant;
@@ -41,7 +42,7 @@ public class UserRepository {
 
         MutableLiveData<ResponseUser> userData = new MutableLiveData<>();
 
-        Call<ResponseUser> call = foodieClient.getData(WelcomeActvity.token);
+        Call<ResponseUser> call = foodieClient.getData(Home.token);
 
         call.enqueue(new Callback<ResponseUser>() {
             @Override
@@ -50,6 +51,7 @@ public class UserRepository {
 
                 Log.i("Response", String.valueOf(response.code()));
                 if (response.isSuccessful()) {
+
                     userData.setValue((ResponseUser) response.body());
 
                 }
@@ -60,6 +62,8 @@ public class UserRepository {
             public void onFailure(Call<ResponseUser> call, Throwable t) {
 
                 userData.setValue(null);
+
+
             }
         });
 

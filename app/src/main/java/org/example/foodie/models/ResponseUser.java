@@ -7,7 +7,8 @@ import java.util.List;
 public class ResponseUser {
 
 
-
+@SerializedName("image")
+String image;
     @SerializedName("token")
     String token;
 
@@ -32,5 +33,9 @@ public class ResponseUser {
 
     public User getUser() {
         return user;
+    }
+
+    public String getImage() {
+        return image;
     }
 }

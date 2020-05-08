@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView nvDrawer;
     private ProgressBar progressBar;
     //DrawerLayout drawer;
-    private String token;
+    public static String token;
     //NavigationView navigationView;
     FrameLayout frameLayout;
     ActionBarDrawerToggle toggle;

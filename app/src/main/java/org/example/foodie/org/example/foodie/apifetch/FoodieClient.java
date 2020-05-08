@@ -12,17 +12,21 @@ import org.example.foodie.models.User;
 
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 
 public interface FoodieClient {
 
     //get all user info
-    @GET("user/me")
+    @GET("restaurant/me")
     Call<ResponseUser> getData(@Header("Authorization") String token);
 
     @GET("restaurant/{id}")
@@ -39,4 +43,11 @@ public interface FoodieClient {
     //Logout restaurant
     @POST("restaurant/logout")
     Call<Void> Logout(@Header("Authorization") String token);
+
+    @Multipart
+    @POST("restaurant/image")
+    Call<ResponseBody> postImage(@Header("Authorization") String token, @Part MultipartBody.Part image);
+
+
+
 }

@@ -26,6 +26,7 @@ import org.example.foodie.models.Food;
 import org.example.foodie.models.Foodid;
 import org.example.foodie.org.example.foodie.apifetch.FoodieClient;
 import org.example.foodie.org.example.foodie.apifetch.ServiceGenerator;
+import org.example.foodie.viewmodels.RestaurantsViewModel;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,7 +40,7 @@ public class Home extends Fragment {
     private EditText foodName,foodprice;
     private Button addFood;
     View rootView;
-    private String token;
+    public static String token;
     ProgressBar loader;
     private  Button test;
     private View progressBar;
