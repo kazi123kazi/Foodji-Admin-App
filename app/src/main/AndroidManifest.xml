@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.example.foodie">
 
+    <uses-sdk android:targetSdkVersion="29" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -12,13 +14,9 @@
         android:name="android.hardware.camera.flash"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.CAMERA" />
- <!--   <uses-feature android:name="android.hardware.camera" />-->
-<!--    <uses-feature android:name="android.hardware.camera.autofocus" />-->
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- <uses-feature android:name="android.hardware.camera" /> -->
+    <!-- <uses-feature android:name="android.hardware.camera.autofocus" /> -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-    <uses-sdk android:targetSdkVersion="29" />
-
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -28,6 +26,8 @@
         android:roundIcon="@drawable/applogo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".AllFoods"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".Splash"
             android:theme="@style/AppTheme.NoActionBar">
@@ -36,9 +36,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-
         <!--
 <<<<<<< HEAD
 
@@ -60,7 +58,6 @@
         <activity
 =======
         -->
-
         <provider
             android:name=".GenericFileProvider"
             android:authorities="${applicationId}.provider"
@@ -68,17 +65,15 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
+                android:resource="@xml/provider_paths" />
         </provider>
 
         <activity
             android:name=".Update"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
             android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
             android:name=".RegisterActivity"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -87,9 +82,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".WelcomeActvity"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

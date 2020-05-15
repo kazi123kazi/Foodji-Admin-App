@@ -31,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button LoginButton;
     private EditText InputPhone, InputPassword,InputRestaurantId;
     private ProgressBar spinner;
+    public    static String rest_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +72,8 @@ public class LoginActivity extends AppCompatActivity {
 
                     intent.putExtra("token", response.body().getToken());
                     intent.putExtra("name",restaurantObj.getName());
+                    rest_id=restaurantObj.get_id();
+                    Log.i("Restaurant id:",rest_id);
                     intent.putExtra("restId",restaurantObj.getRest_id());
                     intent.putExtra("address",restaurantObj.getAddress());
                     startActivity(intent);

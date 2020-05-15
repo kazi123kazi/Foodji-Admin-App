@@ -3,6 +3,8 @@ package org.example.foodie.org.example.foodie.apifetch;
 
 import org.example.foodie.models.Food;
 import org.example.foodie.models.Foodid;
+import org.example.foodie.models.Order;
+import org.example.foodie.models.OrderFood;
 import org.example.foodie.models.ResponseUser;
 import org.example.foodie.models.Restaurant;
 import org.example.foodie.models.RestaurantCreate.RestaurantCreate;
@@ -16,7 +18,9 @@ import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.HTTP;
 import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -48,6 +52,8 @@ public interface FoodieClient {
     @POST("restaurant/image")
     Call<ResponseBody> postImage(@Header("Authorization") String token, @Part MultipartBody.Part image);
 
+    @HTTP(method = "DELETE", path = "restaurant/food", hasBody = true)
+    Call<ResponseBody> deleteFood(@Header("Authorization") String token, @Body OrderFood food);
 
 
 }

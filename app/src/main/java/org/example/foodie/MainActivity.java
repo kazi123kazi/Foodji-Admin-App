@@ -195,6 +195,10 @@ public class MainActivity extends AppCompatActivity {
                 this.startActivity(intent);
                 return;
 
+            case R.id.allFoods:
+                Intent allf= new Intent(MainActivity.this,AllFoods.class);
+                this.startActivity(allf);
+                return;
             case R.id.logout:
                 LogoutUser();
                 return;

@@ -299,9 +299,9 @@ public class Update extends AppCompatActivity {
         restaurantsViewModel.getRestaurantRepository().observe(this,responseUser -> {
 
 
-            if (responseUser.getImage()!=""){
+            if (responseUser.getImage()!=null&&responseUser.getImage()!=""){
 
-                String encodedImage = responseUser.getImage().replace("data:image/png;base64,", "").replace("data:image/jpeg;base64,","");
+                String encodedImage = responseUser.getImage();
 
                 byte[] image= Base64.decode(encodedImage,Base64.DEFAULT);
                 Bitmap i=BitmapFactory.decodeByteArray(image,0,image.length);
