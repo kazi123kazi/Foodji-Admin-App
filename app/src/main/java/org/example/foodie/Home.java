@@ -35,10 +35,10 @@ import retrofit2.Response;
 
 public class Home extends Fragment {
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    private TextView restaurantName, restaurantInfo;
-    private ImageView restaurantImage;
+    private TextView restaurantName, restaurantInfo,stepName;
+    private ImageView restaurantImage,foodImageView;
     private EditText foodName,foodprice;
-    private Button addFood;
+    private Button addFood,selectImageFood,captureImageFood;
     View rootView;
     public static String token;
     ProgressBar loader;
@@ -59,15 +59,60 @@ public class Home extends Fragment {
         foodName=(EditText)rootView.findViewById(R.id.foodName);
         foodprice=(EditText)rootView.findViewById(R.id.foodPrice);
         addFood=(Button)rootView.findViewById(R.id.addFood);
-
-
-       Intent i=getActivity().getIntent();
+        stepName=(TextView)rootView.findViewById(R.id.stepNo);
+        foodImageView=(ImageView)rootView.findViewById(R.id.foodImageView);
+        selectImageFood=(Button)rootView.findViewById(R.id.select_imageFood);
+        captureImageFood=(Button)rootView.findViewById(R.id.capture_imageFood);
+        Intent i=getActivity().getIntent();
        token=i.getStringExtra("token");
        //Log.i("token",token);
         addFood.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PostFoodToRestaurantList();
+                //changing step 1to step 2
+                stepName.setText("Step 2");
+                //invisile all step 1 ui
+                foodName.setVisibility(View.INVISIBLE);
+                foodprice.setVisibility(View.INVISIBLE);
+                addFood.setVisibility(View.INVISIBLE);
+                //visible ui for food image post
+                foodImageView.setVisibility(View.VISIBLE);
+                selectImageFood.setVisibility(View.VISIBLE);
+                captureImageFood.setVisibility(View.VISIBLE);
+            }
+        });
+        selectImageFood.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //post image
+                //if successful then again vsisble the step 1 ui
+                stepName.setText("Step 1");
+                //invisile all step 1 ui
+                foodName.setVisibility(View.VISIBLE);
+                foodprice.setVisibility(View.VISIBLE);
+                addFood.setVisibility(View.VISIBLE);
+                //visible ui for food image post
+                foodImageView.setVisibility(View.INVISIBLE);
+                selectImageFood.setVisibility(View.INVISIBLE);
+                captureImageFood.setVisibility(View.INVISIBLE);
+                //finish instanse so that user can not back and upload or post again
+
+            }
+        });
+        captureImageFood.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //post image
+                //if successful then again vsisble the step 1 ui
+                foodName.setVisibility(View.VISIBLE);
+                foodprice.setVisibility(View.VISIBLE);
+                addFood.setVisibility(View.VISIBLE);
+                //visible ui for food image post
+                foodImageView.setVisibility(View.INVISIBLE);
+                selectImageFood.setVisibility(View.INVISIBLE);
+                captureImageFood.setVisibility(View.INVISIBLE);
+                //finish instanse so that user can not back and upload or post again
             }
         });
 
